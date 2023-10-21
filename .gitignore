@@ -4,3 +4,6 @@ obj/
 .vs/
 .vscode/
 Assembly-CSharp.dll
+/Unity.TextMeshPro.dll
+/UnityEngine.UI.dll
+/README.md
