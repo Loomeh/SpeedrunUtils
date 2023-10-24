@@ -8,12 +8,14 @@ namespace SpeedrunUtils
     {
         private GameObject _mod;
         private Tools _tools;
+        private LiveSplitControl _liveSplitControl;
 
         private void Awake()
         {
             _tools = new();
 
             _mod = new();
+            _mod.AddComponent<LiveSplitControl>();
             _mod.AddComponent<ConfigUi>();
             _mod.AddComponent<Tools>();
             GameObject.DontDestroyOnLoad(_mod);
