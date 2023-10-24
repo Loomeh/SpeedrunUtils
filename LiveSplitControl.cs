@@ -1,118 +1,125 @@
 ﻿using BepInEx;
-using System;
-using System.Collections.Generic;
-using System.Drawing.Text;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 using Reptile;
-using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
+using System;
 using System.IO;
 using System.Net;
-using System.Reflection;
+using System.Net.Sockets;
+using System.Text;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace SpeedrunUtils
 {
     public class LiveSplitControl : MonoBehaviour
     {
-        public static string configPath = Paths.ConfigPath + "\\" + "SpeedrunUtils\\";
-        private string splitsPath = Path.Combine(configPath, "splits.txt");
+        private static readonly string ConfigPath = Paths.ConfigPath + "\\" + "SpeedrunUtils\\";
+        private readonly string SplitsPath = Path.Combine(ConfigPath, "splits.txt");
 
-        public BaseModule baseModule;
-        public bool isLoading;
+        public BaseModule BaseModule;
+        private bool IsLoading;
 
-        public bool isConnectedToLivesplit = false;
+        public bool IsConnectedToLivesplit = false;
 
-        public int StageID = 255;
-        public bool[] splitArray;
+        private int StageID = 255;
+        private bool[] SplitArray;
 
-        public string ipAddress = "127.0.0.1";
-        public Int32 port = 16834;
+        private string IpAddress = "127.0.0.1";
+        private int Port = 16834;
 
+        private float timer = 0.0f;
+        private float updateInterval = 0.002f;
+
+        private bool HasSentPauseCommand = false;
+
+        private TcpClient Client = null;
+        private NetworkStream Stream = null;
 
         public void Start()
         {
-            if(!File.Exists(splitsPath))
+            if (!File.Exists(SplitsPath))
             {
                 using (var client = new WebClient())
                 {
-                    client.DownloadFile("https://raw.githubusercontent.com/Loomeh/BRCAutosplitter/main/splits.txt", splitsPath);
+                    client.DownloadFile("https://raw.githubusercontent.com/Loomeh/BRCAutosplitter/main/splits.txt", SplitsPath);
                 }
             }
             else
             {
-                string[] lines = File.ReadAllLines(splitsPath);
-                splitArray = new bool[lines.Length];
-                
-                for(int i = 0; i < lines.Length; i++)
+                string[] lines = File.ReadAllLines(SplitsPath);
+                SplitArray = new bool[lines.Length];
+
+                for (int i = 0; i < lines.Length; i++)
                 {
                     string[] parts = lines[i].Split(',');
-                    splitArray[i] = bool.Parse(parts[1]);
+                    SplitArray[i] = bool.Parse(parts[1]);
                 }
             }
 
+            ConnectToLiveSplit();
         }
 
-
-        private bool hasSentPauseCommand = false;
-        public void Update()
+        public void ConnectToLiveSplit()
         {
-            bool prevLoading = false;
-            if(baseModule == null)
-                baseModule = Core.Instance.BaseModule;
-
-            isLoading = baseModule.IsLoading;
-
-
-            string currentSceneName = SceneManager.GetActiveScene().name;
-
-            TcpClient client = new TcpClient(ipAddress, port);
-            NetworkStream stream = client.GetStream();
-
-            if(!isConnectedToLivesplit)
+            if (!IsConnectedToLivesplit)
             {
                 Byte[] data = new Byte[256];
                 String responseData = String.Empty;
 
-                stream.Write(System.Text.Encoding.UTF8.GetBytes("getcurrenttimerphase\r\n"), 0, System.Text.Encoding.UTF8.GetBytes("getcurrenttimerphase\r\n").Length);
+                Client = new TcpClient(IpAddress, Port);
+                Stream = Client.GetStream();
 
-                Int32 bytes = stream.Read(data, 0, data.Length);
-                responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+                Stream.Write(Encoding.UTF8.GetBytes("getcurrenttimerphase\r\n"), 0, Encoding.UTF8.GetBytes("getcurrenttimerphase\r\n").Length);
+
+                int bytes = Stream.Read(data, 0, data.Length);
+                responseData = Encoding.ASCII.GetString(data, 0, bytes);
 
                 if (responseData != String.Empty)
                 {
-                    stream.Write(System.Text.Encoding.UTF8.GetBytes("initgametime\r\n"), 0, System.Text.Encoding.UTF8.GetBytes("initgametime\r\n").Length);
-                    isConnectedToLivesplit = true;
+                    Stream.Write(Encoding.UTF8.GetBytes("initgametime\r\n"), 0, Encoding.UTF8.GetBytes("initgametime\r\n").Length);
+                    IsConnectedToLivesplit = true;
                 }
-                    
             }
+        }
 
-
-            if (isConnectedToLivesplit)
+        public void UpdateAutosplitter()
+        {
+            if (IsConnectedToLivesplit)
             {
-                if (isLoading)
+                if (BaseModule == null)
+                    BaseModule = Core.Instance.BaseModule;
+
+                IsLoading = BaseModule.IsLoading;
+
+                if (IsLoading || SceneManager.GetActiveScene().name == "intro" || SceneManager.GetActiveScene().name == "Bootstrap" || SceneManager.GetActiveScene().name == "Core")
                 {
-                    if(!hasSentPauseCommand)
+                    if (!HasSentPauseCommand)
                     {
                         Debug.Log("Pausing game time!");
-                        stream.Write(System.Text.Encoding.UTF8.GetBytes("pausegametime\r\n"), 0, System.Text.Encoding.UTF8.GetBytes("pausegametime\r\n").Length);
-                        hasSentPauseCommand = true;
+                        Stream.Write(Encoding.UTF8.GetBytes("pausegametime\r\n"), 0, Encoding.UTF8.GetBytes("pausegametime\r\n").Length);
+                        HasSentPauseCommand = true;
                     }
                 }
-                else if(hasSentPauseCommand)
+                else if (HasSentPauseCommand)
                 {
-                    if(!isLoading)
+                    if (!IsLoading && SceneManager.GetActiveScene().name != "intro" && SceneManager.GetActiveScene().name != "Bootstrap" && SceneManager.GetActiveScene().name != "Core")
                     {
                         Debug.Log("Unpausing game time!");
-                        stream.Write(System.Text.Encoding.UTF8.GetBytes("unpausegametime\r\n"), 0, System.Text.Encoding.UTF8.GetBytes("unpausegametime\r\n").Length);
-                        hasSentPauseCommand = false;
+                        Stream.Write(Encoding.UTF8.GetBytes("unpausegametime\r\n"), 0, Encoding.UTF8.GetBytes("unpausegametime\r\n").Length);
+                        HasSentPauseCommand = false;
                     }
                 }
             }
-            prevLoading = isLoading;
+        }
+
+        public void Update()
+        {
+            timer += Time.deltaTime;
+
+            if(timer >= updateInterval)
+            {
+                UpdateAutosplitter();
+                timer = 0.0f;
+            }
         }
     }
 }

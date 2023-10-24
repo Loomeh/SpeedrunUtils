@@ -62,15 +62,13 @@ namespace SpeedrunUtils
             GUI.Label(new(ox, oy, mx, 20), $"Uncapped: {(uncapped ? "<color=green>On</color>" : "<color=red>Off</color>")}");
             oy += 10 + 10;
 
-            GUI.Label(new(ox, oy, mx, 20), $"{(lsCon.isConnectedToLivesplit ? "<color=green>Connected to LiveSplit</color>" : "<color=red>Not connected to LiveSplit</color>")}");
+            GUI.Label(new(ox, oy, mx, 20), $"{(lsCon.IsConnectedToLivesplit ? "<color=green>Connected to LiveSplit</color>" : "<color=red>Not connected to LiveSplit</color>")}");
             oy += 10 + 10;
 
 
             fpsCapStr = GUI.TextField(new Rect(ox, oy, mx, 20), fpsCapStr, 4);
 
-            oy += 10 + 10;
 
-            //GUI.Label(new(ox, oy, mx, 20), $"{(lsCon.isConnectedToLivesplit ? "<color=green>Connected</color>" : "<color=red>Not connected</color>")}");
             oy += 10 + 10;
 
             if (GUI.Button(new Rect(ox, oy, mx, 20), "Set FPS"))
@@ -87,7 +85,14 @@ namespace SpeedrunUtils
                 }
             }
 
-            GUI.DragWindow();
+            oy += 10 + 10;
+
+            if (GUI.Button(new Rect(ox, oy, mx, 20), "Connect to LiveSplit"))
+            {
+                lsCon.ConnectToLiveSplit();
+            }
+
+                GUI.DragWindow();
         }
 
         

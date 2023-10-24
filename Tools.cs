@@ -10,7 +10,7 @@ namespace SpeedrunUtils
 
         private Core core;
         private WorldHandler world;
-        private bool coreHasBeenSetup;
+        public bool coreHasBeenSetup;
 
         public Tools()
         {
