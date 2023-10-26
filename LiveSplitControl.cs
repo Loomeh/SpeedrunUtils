@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -20,9 +21,13 @@ namespace SpeedrunUtils
         public BaseModule BaseModule;
         private bool IsLoading;
         private bool prevIsLoading;
+        private bool inCutscene;
+        private Story.ObjectiveID objective;
+        private Story.ObjectiveID prevObjective;
         private Stage prevStage;
         public SequenceHandler sequenceHandler;
         public SaveSlotData saveSlotData;
+        public WorldHandler worldHandler;
 
         public bool IsConnectedToLivesplit = false;
 
@@ -102,10 +107,9 @@ namespace SpeedrunUtils
                 if (BaseModule == null)
                     BaseModule = Core.Instance.BaseModule;
 
-                if (sequenceHandler == null)
-                    sequenceHandler = FindObjectOfType<SequenceHandler>();
 
                 IsLoading = BaseModule.IsLoading;
+                //inCutscene = sequenceHandler.IsInSequence();
 
                 if(BaseModule.CurrentStage == Stage.Prelude && prevIsLoading && !IsLoading)
                 {
@@ -132,8 +136,16 @@ namespace SpeedrunUtils
                     }
                 }
 
-                if(BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.Prelude && SplitArray[0])
+                if((BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.Prelude && SplitArray[0])
+                //||
+                //(BaseModule.CurrentStage == Stage.hideout && !inCutscene && IsLoading && !prevIsLoading && objective == Story.ObjectiveID.EscapePoliceStation && SplitArray[0]) - Having issues with referencing the sequence handler
+                ||
+                (BaseModule.CurrentStage == Stage.downhill && (prevStage == Stage.hideout || prevStage == Stage.square) && (objective == Story.ObjectiveID.EscapePoliceStation || objective == Story.ObjectiveID.JoinTheCrew || objective == Story.ObjectiveID.BeatFranks) && SplitArray[2])
+                ||
+                (BaseModule.CurrentStage == Stage.downhill && objective == Story.ObjectiveID.DJChallenge1 && prevObjective == Story.ObjectiveID.BeatFranks && SplitArray[3])) //Not working - no split
                     Stream.Write(Encoding.UTF8.GetBytes("split\r\n"), 0, Encoding.UTF8.GetBytes("split\r\n").Length);
+
+                //if (sequenceHandler == null) { sequenceHandler = FindObjectOfType<SequenceHandler>(); }
             }
         }
 
@@ -152,6 +164,7 @@ namespace SpeedrunUtils
             {
                 prevIsLoading = IsLoading;
                 prevStage = BaseModule.CurrentStage;
+                prevObjective = objective;
             }
 
             Debug.Log(Core.Instance.SaveManager.CurrentSaveSlot.CurrentStoryObjective);
