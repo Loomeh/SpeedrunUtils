@@ -28,8 +28,6 @@ namespace SpeedrunUtils
 
         public void Start()
         {
-            lsCon = FindObjectOfType<LiveSplitControl>();
-            //lsCon.ConnectToLivesplit();
             if (File.Exists(filePath))
             {
                 using (StreamReader sr = File.OpenText(filePath))
@@ -38,6 +36,11 @@ namespace SpeedrunUtils
                     fpsCapInt = Int32.Parse(fpsCapStr);
                 }
             }
+
+            lsCon = FindObjectOfType<LiveSplitControl>();
+
+            // This function seems to hang up the Start function so make sure it's always put last.
+            lsCon.ConnectToLiveSplit();
         }
 
         public void OnGUI()

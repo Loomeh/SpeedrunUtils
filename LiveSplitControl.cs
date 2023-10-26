@@ -1,7 +1,9 @@
 ﻿using BepInEx;
 using Reptile;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -17,6 +19,10 @@ namespace SpeedrunUtils
 
         public BaseModule BaseModule;
         private bool IsLoading;
+        private bool prevIsLoading;
+        private Stage prevStage;
+        public SequenceHandler sequenceHandler;
+        public SaveSlotData saveSlotData;
 
         public bool IsConnectedToLivesplit = false;
 
@@ -27,7 +33,9 @@ namespace SpeedrunUtils
         private int Port = 16834;
 
         private float timer = 0.0f;
+        private float prevTimer = 0.0f;
         private float updateInterval = 0.002f;
+        private float prevInterval = 0.022f;
 
         private bool HasSentPauseCommand = false;
 
@@ -46,16 +54,22 @@ namespace SpeedrunUtils
             else
             {
                 string[] lines = File.ReadAllLines(SplitsPath);
-                SplitArray = new bool[lines.Length];
+                List<bool> tempList = new List<bool>();
 
-                for (int i = 0; i < lines.Length; i++)
+                foreach (var line in lines)
                 {
-                    string[] parts = lines[i].Split(',');
-                    SplitArray[i] = bool.Parse(parts[1]);
+                    if (!string.IsNullOrWhiteSpace(line) && line.Contains(','))
+                    {
+                        string[] parts = line.Split(',');
+                        if (parts.Length >= 2)
+                        {
+                            tempList.Add(bool.Parse(parts[1]));
+                        }
+                    }
                 }
-            }
 
-            ConnectToLiveSplit();
+                SplitArray = tempList.ToArray();
+            }
         }
 
         public void ConnectToLiveSplit()
@@ -88,7 +102,16 @@ namespace SpeedrunUtils
                 if (BaseModule == null)
                     BaseModule = Core.Instance.BaseModule;
 
+                if (sequenceHandler == null)
+                    sequenceHandler = FindObjectOfType<SequenceHandler>();
+
                 IsLoading = BaseModule.IsLoading;
+
+                if(BaseModule.CurrentStage == Stage.Prelude && prevIsLoading && !IsLoading)
+                {
+                    Stream.Write(Encoding.UTF8.GetBytes("starttimer\r\n"), 0, Encoding.UTF8.GetBytes("starttimer\r\n").Length);
+                }
+
 
                 if (IsLoading || SceneManager.GetActiveScene().name == "intro" || SceneManager.GetActiveScene().name == "Bootstrap" || SceneManager.GetActiveScene().name == "Core")
                 {
@@ -108,18 +131,36 @@ namespace SpeedrunUtils
                         HasSentPauseCommand = false;
                     }
                 }
+
+                if(BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.Prelude && SplitArray[0])
+                    Stream.Write(Encoding.UTF8.GetBytes("split\r\n"), 0, Encoding.UTF8.GetBytes("split\r\n").Length);
             }
         }
 
         public void Update()
         {
             timer += Time.deltaTime;
+            prevTimer += Time.deltaTime;
 
             if(timer >= updateInterval)
             {
                 UpdateAutosplitter();
                 timer = 0.0f;
             }
+
+            if(prevTimer >= prevInterval)
+            {
+                prevIsLoading = IsLoading;
+                prevStage = BaseModule.CurrentStage;
+            }
+
+            Debug.Log(Core.Instance.SaveManager.CurrentSaveSlot.CurrentStoryObjective);
+        }
+
+        public void OnApplicationQuit()
+        {
+            if(IsConnectedToLivesplit)
+                Stream.Write(Encoding.UTF8.GetBytes("pausegametime\r\n"), 0, Encoding.UTF8.GetBytes("pausegametime\r\n").Length);
         }
     }
 }
