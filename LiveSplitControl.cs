@@ -44,7 +44,7 @@ namespace SpeedrunUtils
         private float timer = 0.0f;
         private float prevTimer = 0.0f;
         private float updateInterval = 0.002f;
-        private float prevInterval = 0.022f;
+        private float prevInterval = 0.045f;
 
         private bool HasSentPauseCommand = false;
 
@@ -196,8 +196,10 @@ namespace SpeedrunUtils
                     (BaseModule.CurrentStage == Stage.osaka && (objective == Story.ObjectiveID.BeatOsaka || objective == Story.ObjectiveID.FinalBoss) && finalBossHit && !prevFinalBossHit && SplitArray[16])
                     )
                     {
-                        Stream.Write(Encoding.UTF8.GetBytes("split\r\n"), 0, Encoding.UTF8.GetBytes("split\r\n").Length);
-                    }
+                        // Stupid hack because it splits on main menu for some reason.
+                        if(BaseModule.CurrentStage != Stage.NONE)
+                            Stream.Write(Encoding.UTF8.GetBytes("split\r\n"), 0, Encoding.UTF8.GetBytes("split\r\n").Length);
+                }
             }
         }
 
@@ -220,8 +222,9 @@ namespace SpeedrunUtils
                 prevFinalBossHit = finalBossHit;
             }
 
-            Debug.Log($"Current Objective: {objective}. Previous Objective: {prevObjective}");
+            //Debug.Log($"Current Objective: {objective}. Previous Objective: {prevObjective}");
             //Debug.Log(string.Join("\n", SplitArray));
+            Debug.Log(BaseModule.CurrentStage);
         }
 
         public void OnApplicationQuit()
