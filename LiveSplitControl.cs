@@ -21,7 +21,6 @@ namespace SpeedrunUtils
         public BaseModule BaseModule;
         private bool IsLoading;
         private bool prevIsLoading;
-        private bool inCutscene;
         private Story.ObjectiveID objective;
         private Story.ObjectiveID prevObjective;
         private Stage prevStage;
@@ -32,18 +31,16 @@ namespace SpeedrunUtils
         public GameObject finalBossGO;
         public bool finalBossHit;
         public bool prevFinalBossHit;
+        public bool isboostlocked;
 
         public bool IsConnectedToLivesplit = false;
 
-        private int StageID = 255;
         private bool[] SplitArray;
 
         private string IpAddress = "127.0.0.1";
         private int Port = 16834;
 
-        private float timer = 0.0f;
         private float prevTimer = 0.0f;
-        private float updateInterval = 0.002f;
         private float prevInterval = 0.045f;
 
         private bool HasSentPauseCommand = false;
@@ -83,24 +80,37 @@ namespace SpeedrunUtils
 
         public void ConnectToLiveSplit()
         {
-            if (!IsConnectedToLivesplit)
+            try
             {
-                Byte[] data = new Byte[256];
-                String responseData = String.Empty;
-
-                Client = new TcpClient(IpAddress, Port);
-                Stream = Client.GetStream();
-
-                Stream.Write(Encoding.UTF8.GetBytes("getcurrenttimerphase\r\n"), 0, Encoding.UTF8.GetBytes("getcurrenttimerphase\r\n").Length);
-
-                int bytes = Stream.Read(data, 0, data.Length);
-                responseData = Encoding.ASCII.GetString(data, 0, bytes);
-
-                if (responseData != String.Empty)
+                if (!IsConnectedToLivesplit)
                 {
-                    Stream.Write(Encoding.UTF8.GetBytes("initgametime\r\n"), 0, Encoding.UTF8.GetBytes("initgametime\r\n").Length);
-                    IsConnectedToLivesplit = true;
+                    Byte[] data = new Byte[256];
+                    String responseData = String.Empty;
+
+                    Client = new TcpClient(IpAddress, Port);
+                    Stream = Client.GetStream();
+
+                    Stream.Write(Encoding.UTF8.GetBytes("getcurrenttimerphase\r\n"), 0, Encoding.UTF8.GetBytes("getcurrenttimerphase\r\n").Length);
+
+                    int bytes = Stream.Read(data, 0, data.Length);
+                    responseData = Encoding.ASCII.GetString(data, 0, bytes);
+
+                    if (responseData != String.Empty)
+                    {
+                        Stream.Write(Encoding.UTF8.GetBytes("initgametime\r\n"), 0, Encoding.UTF8.GetBytes("initgametime\r\n").Length);
+                        IsConnectedToLivesplit = true;
+                    }
                 }
+            }
+            catch (SocketException ex)
+            {
+                Debug.LogError($"Error connecting to LiveSplit: {ex.Message}");
+                IsConnectedToLivesplit = false;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"An unexpected error occurred: {ex.Message}");
+                IsConnectedToLivesplit = false;
             }
         }
 
@@ -118,20 +128,11 @@ namespace SpeedrunUtils
 
                 if (finalBossGO != null) { finalBossHit = finalBossGO.transform.GetComponent<SnakeBossChestImpactReceiver>().WasHit; }
 
-                // Put the player referencing in a try/catch block to keep code execution flowing when the Player component can't be found
-                try
-                {
-                    if (player == null && worldHandler != null && !IsLoading) { player = WorldHandler.instance.GetCurrentPlayer(); }
-                    inCutscene = player.IsBusyWithSequence();
-                }
-                catch (Exception e)
-                {
-                    Debug.Log("Player not found!");
-                }
+
 
                 IsLoading = BaseModule.IsLoading;
 
-                if(BaseModule.CurrentStage == Stage.Prelude && prevIsLoading && !IsLoading)
+                if (BaseModule.CurrentStage == Stage.Prelude && prevIsLoading && !IsLoading)
                 {
                     Stream.Write(Encoding.UTF8.GetBytes("starttimer\r\n"), 0, Encoding.UTF8.GetBytes("starttimer\r\n").Length);
                 }
@@ -205,16 +206,14 @@ namespace SpeedrunUtils
 
         public void Update()
         {
-            timer += Time.deltaTime;
             prevTimer += Time.deltaTime;
 
-            if(timer >= updateInterval)
+            if(IsConnectedToLivesplit)
             {
                 UpdateAutosplitter();
-                timer = 0.0f;
             }
 
-            if(prevTimer >= prevInterval)
+            if(prevTimer >= prevInterval && IsConnectedToLivesplit)
             {
                 prevIsLoading = IsLoading;
                 prevStage = BaseModule.CurrentStage;
@@ -224,7 +223,7 @@ namespace SpeedrunUtils
 
             //Debug.Log($"Current Objective: {objective}. Previous Objective: {prevObjective}");
             //Debug.Log(string.Join("\n", SplitArray));
-            Debug.Log(BaseModule.CurrentStage);
+            //Debug.Log(BaseModule.CurrentStage);
         }
 
         public void OnApplicationQuit()
