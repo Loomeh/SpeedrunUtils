@@ -134,7 +134,20 @@ namespace SpeedrunUtils
 
                 if (BaseModule.CurrentStage == Stage.Prelude && prevIsLoading && !IsLoading)
                 {
-                    Stream.Write(Encoding.UTF8.GetBytes("starttimer\r\n"), 0, Encoding.UTF8.GetBytes("starttimer\r\n").Length);
+                    try
+                    {
+                        Stream.Write(Encoding.UTF8.GetBytes("starttimer\r\n"), 0, Encoding.UTF8.GetBytes("starttimer\r\n").Length);
+                    }
+                    catch (SocketException ex)
+                    {
+                        Debug.LogError($"Error connecting to LiveSplit: {ex.Message}");
+                        IsConnectedToLivesplit = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"An unexpected error occurred: {ex.Message}");
+                        IsConnectedToLivesplit = false;
+                    }
                 }
 
 
@@ -142,18 +155,44 @@ namespace SpeedrunUtils
                 {
                     if (!HasSentPauseCommand)
                     {
-                        Debug.Log("Pausing game time!");
-                        Stream.Write(Encoding.UTF8.GetBytes("pausegametime\r\n"), 0, Encoding.UTF8.GetBytes("pausegametime\r\n").Length);
-                        HasSentPauseCommand = true;
+                        try
+                        {
+                            Debug.Log("Pausing game time!");
+                            Stream.Write(Encoding.UTF8.GetBytes("pausegametime\r\n"), 0, Encoding.UTF8.GetBytes("pausegametime\r\n").Length);
+                            HasSentPauseCommand = true;
+                        }
+                        catch (SocketException ex)
+                        {
+                            Debug.LogError($"Error connecting to LiveSplit: {ex.Message}");
+                            IsConnectedToLivesplit = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogError($"An unexpected error occurred: {ex.Message}");
+                            IsConnectedToLivesplit = false;
+                        }
                     }
                 }
                 else if (HasSentPauseCommand)
                 {
                     if (!IsLoading && SceneManager.GetActiveScene().name != "intro" && SceneManager.GetActiveScene().name != "Bootstrap" && SceneManager.GetActiveScene().name != "Core")
                     {
-                        Debug.Log("Unpausing game time!");
-                        Stream.Write(Encoding.UTF8.GetBytes("unpausegametime\r\n"), 0, Encoding.UTF8.GetBytes("unpausegametime\r\n").Length);
-                        HasSentPauseCommand = false;
+                        try
+                        {
+                            Debug.Log("Unpausing game time!");
+                            Stream.Write(Encoding.UTF8.GetBytes("unpausegametime\r\n"), 0, Encoding.UTF8.GetBytes("unpausegametime\r\n").Length);
+                            HasSentPauseCommand = false;
+                        }
+                        catch (SocketException ex)
+                        {
+                            Debug.LogError($"Error connecting to LiveSplit: {ex.Message}");
+                            IsConnectedToLivesplit = false;
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.LogError($"An unexpected error occurred: {ex.Message}");
+                            IsConnectedToLivesplit = false;
+                        }
                     }
                 }
 
@@ -196,10 +235,26 @@ namespace SpeedrunUtils
                     ||
                     (BaseModule.CurrentStage == Stage.osaka && (objective == Story.ObjectiveID.BeatOsaka || objective == Story.ObjectiveID.FinalBoss) && finalBossHit && !prevFinalBossHit && SplitArray[16])
                     )
-                    {
+                {
                         // Stupid hack because it splits on main menu for some reason.
                         if(BaseModule.CurrentStage != Stage.NONE)
-                            Stream.Write(Encoding.UTF8.GetBytes("split\r\n"), 0, Encoding.UTF8.GetBytes("split\r\n").Length);
+                        {
+                            try
+                            {
+                                Stream.Write(Encoding.UTF8.GetBytes("split\r\n"), 0, Encoding.UTF8.GetBytes("split\r\n").Length);
+                            }
+                            catch (SocketException ex)
+                            {
+                                Debug.LogError($"Error connecting to LiveSplit: {ex.Message}");
+                                IsConnectedToLivesplit = false;
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.LogError($"An unexpected error occurred: {ex.Message}");
+                                IsConnectedToLivesplit = false;
+                            }
+                    }
+                            
                 }
             }
         }
@@ -229,7 +284,22 @@ namespace SpeedrunUtils
         public void OnApplicationQuit()
         {
             if(IsConnectedToLivesplit)
-                Stream.Write(Encoding.UTF8.GetBytes("pausegametime\r\n"), 0, Encoding.UTF8.GetBytes("pausegametime\r\n").Length);
+            {
+                try
+                {
+                    Stream.Write(Encoding.UTF8.GetBytes("pausegametime\r\n"), 0, Encoding.UTF8.GetBytes("pausegametime\r\n").Length);
+                }
+                catch (SocketException ex)
+                {
+                    Debug.LogError($"Error connecting to LiveSplit: {ex.Message}");
+                    IsConnectedToLivesplit = false;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"An unexpected error occurred: {ex.Message}");
+                    IsConnectedToLivesplit = false;
+                }
+            }
         }
     }
 }
