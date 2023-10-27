@@ -108,6 +108,8 @@ namespace SpeedrunUtils
                 if (BaseModule == null) { BaseModule = Core.Instance.BaseModule; }
                 if (worldHandler == null) { worldHandler = WorldHandler.instance; }
 
+                objective = Core.Instance.SaveManager.CurrentSaveSlot.CurrentStoryObjective;
+
 
                 // Put the player referencing in a try/catch block to keep code execution flowing when the Player component can't be found
                 try
@@ -151,7 +153,7 @@ namespace SpeedrunUtils
                 ||
                 (BaseModule.CurrentStage == Stage.downhill && (prevStage == Stage.hideout || prevStage == Stage.square) && (objective == Story.ObjectiveID.EscapePoliceStation || objective == Story.ObjectiveID.JoinTheCrew || objective == Story.ObjectiveID.BeatFranks) && SplitArray[2])
                 ||
-                (BaseModule.CurrentStage == Stage.downhill && objective == Story.ObjectiveID.DJChallenge1 && prevObjective == Story.ObjectiveID.BeatFranks && SplitArray[3]))
+                (objective == Story.ObjectiveID.DJChallenge1 && (prevObjective == Story.ObjectiveID.BeatFranks || prevObjective == Story.ObjectiveID.EscapePoliceStation) && SplitArray[3]))
                     Stream.Write(Encoding.UTF8.GetBytes("split\r\n"), 0, Encoding.UTF8.GetBytes("split\r\n").Length);
 
                 //if (sequenceHandler == null) { sequenceHandler = FindObjectOfType<SequenceHandler>(); }
@@ -176,7 +178,7 @@ namespace SpeedrunUtils
                 prevObjective = objective;
             }
 
-            Debug.Log(player.IsBusyWithSequence());
+            Debug.Log($"Current Objective: {objective}. Previous Objective: {prevObjective}");
         }
 
         public void OnApplicationQuit()
