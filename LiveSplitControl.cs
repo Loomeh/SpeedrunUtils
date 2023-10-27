@@ -29,6 +29,9 @@ namespace SpeedrunUtils
         public SaveSlotData saveSlotData;
         public WorldHandler worldHandler;
         public Player player;
+        public GameObject finalBossGO;
+        public bool finalBossHit;
+        public bool prevFinalBossHit;
 
         public bool IsConnectedToLivesplit = false;
 
@@ -107,9 +110,13 @@ namespace SpeedrunUtils
             {
                 if (BaseModule == null) { BaseModule = Core.Instance.BaseModule; }
                 if (worldHandler == null) { worldHandler = WorldHandler.instance; }
+                
 
                 objective = Core.Instance.SaveManager.CurrentSaveSlot.CurrentStoryObjective;
 
+                if (finalBossGO == null && BaseModule.CurrentStage == Stage.osaka && (objective == Story.ObjectiveID.BeatOsaka || objective == Story.ObjectiveID.FinalBoss)) { finalBossGO = GameObject.FindGameObjectWithTag("SnakebossHead"); }
+
+                if (finalBossGO != null) { finalBossHit = finalBossGO.transform.GetComponent<SnakeBossChestImpactReceiver>().WasHit; }
 
                 // Put the player referencing in a try/catch block to keep code execution flowing when the Player component can't be found
                 try
@@ -149,14 +156,48 @@ namespace SpeedrunUtils
                     }
                 }
 
-                if((BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.Prelude && SplitArray[0])
-                ||
-                (BaseModule.CurrentStage == Stage.downhill && (prevStage == Stage.hideout || prevStage == Stage.square) && (objective == Story.ObjectiveID.EscapePoliceStation || objective == Story.ObjectiveID.JoinTheCrew || objective == Story.ObjectiveID.BeatFranks) && SplitArray[2])
-                ||
-                (objective == Story.ObjectiveID.DJChallenge1 && (prevObjective == Story.ObjectiveID.BeatFranks || prevObjective == Story.ObjectiveID.EscapePoliceStation) && SplitArray[3]))
-                    Stream.Write(Encoding.UTF8.GetBytes("split\r\n"), 0, Encoding.UTF8.GetBytes("split\r\n").Length);
-
-                //if (sequenceHandler == null) { sequenceHandler = FindObjectOfType<SequenceHandler>(); }
+                if (
+                    (BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.Prelude && SplitArray[0])
+                    ||
+                    (BaseModule.CurrentStage == Stage.downhill && (prevStage == Stage.hideout || prevStage == Stage.square) && (objective == Story.ObjectiveID.EscapePoliceStation || objective == Story.ObjectiveID.JoinTheCrew || objective == Story.ObjectiveID.BeatFranks) && SplitArray[1])
+                    ||
+                    (objective == Story.ObjectiveID.DJChallenge1 && (prevObjective == Story.ObjectiveID.BeatFranks || prevObjective == Story.ObjectiveID.EscapePoliceStation) && SplitArray[2])
+                    ||
+                    (BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.downhill && objective == Story.ObjectiveID.GoToSquare && SplitArray[3])
+                    ||
+                    (BaseModule.CurrentStage == Stage.tower && prevStage == Stage.square && objective == Story.ObjectiveID.BeatEclipse && SplitArray[4])
+                    ||
+                    (BaseModule.CurrentStage == Stage.tower && objective == Story.ObjectiveID.DJChallenge2 && prevObjective == Story.ObjectiveID.BeatEclipse && SplitArray[5])
+                    ||
+                    (BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.tower && objective == Story.ObjectiveID.BeatDotExe && SplitArray[6])
+                    ||
+                    (BaseModule.CurrentStage == Stage.Mall && prevStage == Stage.square && objective == Story.ObjectiveID.BeatDotExe && SplitArray[7])
+                    ||
+                    (BaseModule.CurrentStage == Stage.Mall && objective == Story.ObjectiveID.DJChallenge3 && prevObjective == Story.ObjectiveID.BeatDotExe && SplitArray[8])
+                    ||
+                    (BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.Mall && objective == Story.ObjectiveID.SearchForPrince && SplitArray[9])
+                    ||
+                    (BaseModule.CurrentStage == Stage.downhill && objective == Story.ObjectiveID.SearchForPrince2 && prevObjective == Story.ObjectiveID.SearchForPrince && SplitArray[10])
+                    ||
+                    (BaseModule.CurrentStage == Stage.square && objective == Story.ObjectiveID.SearchForPrince3 && prevObjective == Story.ObjectiveID.SearchForPrince2 && SplitArray[11])
+                    ||
+                    (BaseModule.CurrentStage == Stage.tower && objective == Story.ObjectiveID.SearchForPrince4 && prevObjective == Story.ObjectiveID.SearchForPrince3 && SplitArray[12])
+                    ||
+                    (BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.osaka && objective == Story.ObjectiveID.BeatSamurai && SplitArray[13])
+                    ||
+                    (BaseModule.CurrentStage == Stage.pyramid && prevStage == Stage.square && (objective == Story.ObjectiveID.SearchForPrince || objective == Story.ObjectiveID.BeatSamurai) && SplitArray[13])
+                    ||
+                    (BaseModule.CurrentStage == Stage.pyramid && objective == Story.ObjectiveID.DJChallenge4 && prevObjective == Story.ObjectiveID.BeatSamurai && SplitArray[14])
+                    ||
+                    (BaseModule.CurrentStage == Stage.pyramid && objective == Story.ObjectiveID.DJChallenge4 && prevObjective == Story.ObjectiveID.SearchForPrince && SplitArray[14])
+                    ||
+                    (BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.pyramid && objective == Story.ObjectiveID.BeatOsaka && SplitArray[15])
+                    ||
+                    (BaseModule.CurrentStage == Stage.osaka && (objective == Story.ObjectiveID.BeatOsaka || objective == Story.ObjectiveID.FinalBoss) && finalBossHit && !prevFinalBossHit && SplitArray[16])
+                    )
+                    {
+                        Stream.Write(Encoding.UTF8.GetBytes("split\r\n"), 0, Encoding.UTF8.GetBytes("split\r\n").Length);
+                    }
             }
         }
 
@@ -176,6 +217,7 @@ namespace SpeedrunUtils
                 prevIsLoading = IsLoading;
                 prevStage = BaseModule.CurrentStage;
                 prevObjective = objective;
+                prevFinalBossHit = finalBossHit;
             }
 
             Debug.Log($"Current Objective: {objective}. Previous Objective: {prevObjective}");
