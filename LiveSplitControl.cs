@@ -163,9 +163,9 @@ namespace SpeedrunUtils
                     ||
                     (objective == Story.ObjectiveID.DJChallenge1 && (prevObjective == Story.ObjectiveID.BeatFranks || prevObjective == Story.ObjectiveID.EscapePoliceStation) && SplitArray[2])
                     ||
-                    (BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.downhill && objective == Story.ObjectiveID.GoToSquare && SplitArray[3])
+                    (BaseModule.CurrentStage == Stage.hideout && prevStage == Stage.downhill && objective == Story.ObjectiveID.GoToSquare && SplitArray[3]) // Broken
                     ||
-                    (BaseModule.CurrentStage == Stage.tower && prevStage == Stage.square && objective == Story.ObjectiveID.BeatEclipse && SplitArray[4])
+                    (BaseModule.CurrentStage == Stage.tower && prevStage == Stage.square && objective == Story.ObjectiveID.BeatEclipse && SplitArray[4]) // Broken
                     ||
                     (BaseModule.CurrentStage == Stage.tower && objective == Story.ObjectiveID.DJChallenge2 && prevObjective == Story.ObjectiveID.BeatEclipse && SplitArray[5])
                     ||
@@ -221,6 +221,7 @@ namespace SpeedrunUtils
             }
 
             Debug.Log($"Current Objective: {objective}. Previous Objective: {prevObjective}");
+            //Debug.Log(string.Join("\n", SplitArray));
         }
 
         public void OnApplicationQuit()
