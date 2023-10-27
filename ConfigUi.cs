@@ -1,5 +1,6 @@
 using BepInEx;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,10 +21,34 @@ namespace SpeedrunUtils
         public int fpsCapInt = -1;
         public bool limiting = false;
         public bool uncapped = false;
-        int sceneID;
+        public KeyCode uncapKey;
+        public KeyCode limitKey;
 
         public static string configFolder = Paths.ConfigPath + "\\" + "SpeedrunUtils\\";
         private string filePath = Path.Combine(configFolder, "FPS.txt");
+        private string keyConfigPath = Path.Combine(configFolder, "Keys.txt");
+
+        public void configureKeys()
+        {
+            string[] lines = File.ReadAllLines(keyConfigPath);
+
+            List<string> tempList = new List<string>();
+
+            foreach (var line in lines)
+            {
+                if (!string.IsNullOrWhiteSpace(line) && line.Contains(','))
+                {
+                    string[] parts = line.Split(',');
+                    if (parts.Length >= 2)
+                    {
+                        tempList.Add(parts[1]);
+                    }
+                }
+            }
+
+            limitKey = (KeyCode)System.Enum.Parse(typeof(KeyCode), tempList[1], true);
+            uncapKey = (KeyCode)System.Enum.Parse(typeof(KeyCode), tempList[0], true);
+        }
 
 
         public void Start()
@@ -35,6 +60,16 @@ namespace SpeedrunUtils
                     fpsCapStr = sr.ReadToEnd();
                     fpsCapInt = Int32.Parse(fpsCapStr);
                 }
+            }
+
+            if(File.Exists(keyConfigPath))
+            {
+                configureKeys();
+            }
+            else
+            {
+                File.WriteAllText(keyConfigPath, "Limit framerate,O\nUncap framerate,P");
+                configureKeys();
             }
 
             lsCon = FindObjectOfType<LiveSplitControl>();
@@ -103,7 +138,7 @@ namespace SpeedrunUtils
         {
             if (Input.GetKeyDown(KeyCode.Quote)) open = !open;
 
-            if (Input.GetKeyDown(KeyCode.P))
+            if (Input.GetKeyDown(limitKey))
             {
                 limiting = !limiting;
 
@@ -111,7 +146,7 @@ namespace SpeedrunUtils
                     uncapped = false;
             }
 
-            if (Input.GetKeyDown(KeyCode.O))
+            if (Input.GetKeyDown(uncapKey))
             {
                 uncapped = !uncapped;
                 
