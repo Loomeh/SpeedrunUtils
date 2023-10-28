@@ -55,6 +55,12 @@ namespace SpeedrunUtils
         private TcpClient Client = null;
         private NetworkStream Stream = null;
 
+        public void Awake()
+        {
+            if(!Directory.Exists(ConfigPath))
+                Directory.CreateDirectory(ConfigPath);
+        }
+
         public void Start()
         {
             if (!File.Exists(SplitsPath))

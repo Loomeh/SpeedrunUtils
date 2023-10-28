@@ -83,7 +83,7 @@ namespace SpeedrunUtils
         {
             if (open)
             {
-                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} (1.3.1)");
+                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} (1.3.2)");
             }
 
             if(lsCon.debug)
