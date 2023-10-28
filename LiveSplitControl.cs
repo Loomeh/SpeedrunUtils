@@ -156,10 +156,11 @@ namespace SpeedrunUtils
                 if (sequenceHandler != null && inCutscene && sequenceName == "") { sequence = (PlayableDirector)typeof(SequenceHandler).GetField("sequence", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sequenceHandler); sequenceName = sequence.name; }
                 else if (!inCutscene) { sequenceName = ""; }
 
+                if (finalBossHit && currentStage != Stage.osaka) { finalBossHit = false; }
+
                 if (finalBossGO == null && currentStage == Stage.osaka && (objective == Story.ObjectiveID.BeatOsaka || objective == Story.ObjectiveID.FinalBoss)) { finalBossGO = GameObject.FindGameObjectWithTag("SnakebossHead"); }
                 if (finalBossGO != null) { finalBossHit = finalBossGO.transform.GetComponent<SnakeBossChestImpactReceiver>().WasHit; }
 
-                if (finalBossHit && currentStage != Stage.osaka) { finalBossHit = false; }
 
                 objective = Core.Instance.SaveManager.CurrentSaveSlot.CurrentStoryObjective;
             }
