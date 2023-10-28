@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using Reptile;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -61,35 +62,7 @@ namespace SpeedrunUtils
                 Directory.CreateDirectory(ConfigPath);
         }
 
-        public void Start()
-        {
-            if (!File.Exists(SplitsPath))
-            {
-                using (var client = new WebClient())
-                {
-                    client.DownloadFile("https://raw.githubusercontent.com/Loomeh/BRCAutosplitter/main/splits.txt", SplitsPath);
-                }
-            }
-            else
-            {
-                string[] lines = File.ReadAllLines(SplitsPath);
-                List<bool> tempList = new List<bool>();
 
-                foreach (var line in lines)
-                {
-                    if (!string.IsNullOrWhiteSpace(line) && line.Contains(','))
-                    {
-                        string[] parts = line.Split(',');
-                        if (parts.Length >= 2)
-                        {
-                            tempList.Add(bool.Parse(parts[1]));
-                        }
-                    }
-                }
-
-                SplitArray = tempList.ToArray();
-            }
-        }
 
         public void ConnectToLiveSplit()
         {
@@ -312,6 +285,26 @@ namespace SpeedrunUtils
             if(IsConnectedToLivesplit || debug)
             {
                 UpdateAutosplitter();
+            }
+
+            if(File.Exists(SplitsPath) && SplitArray == null)
+            {
+                string[] lines = File.ReadAllLines(SplitsPath);
+                List<bool> tempList = new List<bool>();
+
+                foreach (var line in lines)
+                {
+                    if (!string.IsNullOrWhiteSpace(line) && line.Contains(','))
+                    {
+                        string[] parts = line.Split(',');
+                        if (parts.Length >= 2)
+                        {
+                            tempList.Add(bool.Parse(parts[1]));
+                        }
+                    }
+                }
+
+                SplitArray = tempList.ToArray();
             }
 
 

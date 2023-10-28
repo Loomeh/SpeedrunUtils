@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -28,6 +29,7 @@ namespace SpeedrunUtils
         public static string configFolder = Paths.ConfigPath + "\\" + "SpeedrunUtils\\";
         private string filePath = Path.Combine(configFolder, "FPS.txt");
         private string keyConfigPath = Path.Combine(configFolder, "Keys.txt");
+        private readonly string SplitsPath = Path.Combine(configFolder, "splits.txt");
 
         public void configureKeys()
         {
@@ -54,36 +56,51 @@ namespace SpeedrunUtils
 
         public void Start()
         {
-            if (File.Exists(filePath))
+            if(!Directory.Exists(configFolder))
             {
-                using (StreamReader sr = File.OpenText(filePath))
-                {
-                    fpsCapStr = sr.ReadToEnd();
-                    fpsCapInt = Int32.Parse(fpsCapStr);
-                }
-            }
-
-            if(File.Exists(keyConfigPath))
-            {
-                configureKeys();
+                Directory.CreateDirectory(configFolder);
             }
             else
             {
-                File.WriteAllText(keyConfigPath, "Limit framerate,O\nUncap framerate,P");
-                configureKeys();
+                if (File.Exists(filePath))
+                {
+                    using (StreamReader sr = File.OpenText(filePath))
+                    {
+                        fpsCapStr = sr.ReadToEnd();
+                        fpsCapInt = Int32.Parse(fpsCapStr);
+                    }
+                }
+
+                if (!File.Exists(SplitsPath))
+                {
+                    using (var client = new WebClient())
+                    {
+                        client.DownloadFile("https://raw.githubusercontent.com/Loomeh/BRCAutosplitter/main/splits.txt", SplitsPath);
+                    }
+                }
+
+                if (File.Exists(keyConfigPath))
+                {
+                    configureKeys();
+                }
+                else
+                {
+                    File.WriteAllText(keyConfigPath, "Limit framerate,O\nUncap framerate,P");
+                    configureKeys();
+                }
+
+                lsCon = FindObjectOfType<LiveSplitControl>();
+
+                // This function seems to hang up the Start function so make sure it's always put last.
+                lsCon.ConnectToLiveSplit();
             }
-
-            lsCon = FindObjectOfType<LiveSplitControl>();
-
-            // This function seems to hang up the Start function so make sure it's always put last.
-            lsCon.ConnectToLiveSplit();
         }
 
         public void OnGUI()
         {
             if (open)
             {
-                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} (1.3.2)");
+                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} (1.3.3)");
             }
 
             if(lsCon.debug)
