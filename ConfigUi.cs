@@ -15,7 +15,8 @@ namespace SpeedrunUtils
 
         public bool open = false;
 
-        private Rect winRect = new(20, 20, 275, 150);
+        private Rect winRect = new(20, 20, 275, 200);
+        private Rect debugRect = new(20, 40, 275, 150);
 
         public string fpsCapStr = "";
         public int fpsCapInt = -1;
@@ -82,7 +83,12 @@ namespace SpeedrunUtils
         {
             if (open)
             {
-                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} ({PluginInfo.PLUGIN_VERSION})");
+                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} (1.3)");
+            }
+
+            if(lsCon.debug)
+            {
+                debugRect = GUI.Window(1, debugRect, DebugWinProc, "SpeedrunUtils Debug Mode");
             }
         }
 
@@ -130,7 +136,40 @@ namespace SpeedrunUtils
                 lsCon.ConnectToLiveSplit();
             }
 
-                GUI.DragWindow();
+            oy += 10 + 15;
+
+            GUI.Label(new(ox, oy, mx, 20), "Report any issues in #technical-help");
+            oy += 10 + 10;
+
+            GUI.Label(new(ox, oy, mx, 20), "Developed by <color=purple>Loomeh</color> and <color=cyan>Ninja Cookie</color>");
+            oy += 10 + 5;
+
+            GUI.DragWindow();
+        }
+
+        private void DebugWinProc(int id)
+        {
+            var dOX = 15f;
+            var dOY = 30f;
+            var dMX = debugRect.width - 30;
+
+            // Debug labels
+            GUI.Label(new(dOX, dOY, dMX, 20), $"Current stage: {lsCon.currentStage}");
+            dOY += 10 + 5;
+
+            GUI.Label(new(dOX, dOY, dMX, 20), $"Previous stage: {lsCon.prevStage}");
+            dOY += 10 + 5;
+
+            GUI.Label(new(dOX, dOY, dMX, 20), $"Current objective: {lsCon.objective}");
+            dOY += 10 + 5;
+
+            GUI.Label(new(dOX, dOY, dMX, 20), $"Previous objective: {lsCon.prevObjective}");
+            dOY += 10 + 5;
+
+            GUI.Label(new(dOX, dOY, dMX, 20), $"Cutscene ID: {lsCon.sequenceName}");
+            dOY += 10 + 5;
+
+            GUI.DragWindow();
         }
 
         

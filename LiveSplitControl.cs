@@ -9,6 +9,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
 
 namespace SpeedrunUtils
@@ -18,13 +19,19 @@ namespace SpeedrunUtils
         private static readonly string ConfigPath = Paths.ConfigPath + "\\" + "SpeedrunUtils\\";
         private readonly string SplitsPath = Path.Combine(ConfigPath, "splits.txt");
 
+        public bool debug = false;
+
         public BaseModule BaseModule;
         private bool IsLoading;
         private bool prevIsLoading;
-        private Story.ObjectiveID objective;
-        private Story.ObjectiveID prevObjective;
-        private Stage prevStage;
+        public Story.ObjectiveID objective;
+        public Story.ObjectiveID prevObjective;
+        public Stage currentStage;
+        public Stage prevStage;
+        public SequenceState sequenceState;
         public SequenceHandler sequenceHandler;
+        public PlayableDirector sequence;
+        public string sequenceName;
         public SaveSlotData saveSlotData;
         public WorldHandler worldHandler;
         public Player player;
@@ -32,16 +39,16 @@ namespace SpeedrunUtils
         public bool finalBossHit;
         public bool prevFinalBossHit;
         public bool isboostlocked;
+        public bool inCutscene;
 
         public bool IsConnectedToLivesplit = false;
+        public bool newGame;
 
         private bool[] SplitArray;
 
         private string IpAddress = "127.0.0.1";
         private int Port = 16834;
 
-        private float prevTimer = 0.0f;
-        private float prevInterval = 0.045f;
 
         private bool HasSentPauseCommand = false;
 
@@ -114,29 +121,61 @@ namespace SpeedrunUtils
             }
         }
 
-        public void UpdateAutosplitter()
+        private void UpdateFields()
         {
-            if (IsConnectedToLivesplit)
+            if (Core.Instance != null)
             {
                 if (BaseModule == null) { BaseModule = Core.Instance.BaseModule; }
                 if (worldHandler == null) { worldHandler = WorldHandler.instance; }
-                
 
-                objective = Core.Instance.SaveManager.CurrentSaveSlot.CurrentStoryObjective;
+                if (BaseModule != null)
+                {
+                    prevIsLoading = IsLoading;
+                    IsLoading = BaseModule.IsLoading;
+
+                    prevStage = currentStage;
+                    currentStage = BaseModule.CurrentStage;
+
+                    prevObjective = objective;
+                    prevFinalBossHit = finalBossHit;
+                }
+
+                if (prevIsLoading && !IsLoading && Core.Instance.SaveManager != null && Core.Instance.SaveManager.CurrentSaveSlot != null && !Core.Instance.SaveManager.CurrentSaveSlot.fortuneAppLocked)
+                {
+                    newGame = true;
+                }
+
+                if (player == null && worldHandler != null) { player = worldHandler.GetCurrentPlayer(); }
+                if (player != null)
+                {
+                    inCutscene = player.IsBusyWithSequence();
+                    sequenceState = (SequenceState)typeof(Player).GetField("sequenceState", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(player);
+                }
+
+                if (sequenceHandler == null && worldHandler != null) { sequenceHandler = (SequenceHandler)typeof(WorldHandler).GetField("sequenceHandler", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(worldHandler); }
+                if (sequenceHandler != null && inCutscene && sequenceName == "") { sequence = (PlayableDirector)typeof(SequenceHandler).GetField("sequence", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sequenceHandler); sequenceName = sequence.name; }
+                else if (!inCutscene) { sequenceName = ""; }
 
                 if (finalBossGO == null && BaseModule.CurrentStage == Stage.osaka && (objective == Story.ObjectiveID.BeatOsaka || objective == Story.ObjectiveID.FinalBoss)) { finalBossGO = GameObject.FindGameObjectWithTag("SnakebossHead"); }
-
                 if (finalBossGO != null) { finalBossHit = finalBossGO.transform.GetComponent<SnakeBossChestImpactReceiver>().WasHit; }
 
+                objective = Core.Instance.SaveManager.CurrentSaveSlot.CurrentStoryObjective;
+            }
+        }
 
+        public void UpdateAutosplitter()
+        {
+            if (IsConnectedToLivesplit || debug)
+            {
+                UpdateFields();
 
-                IsLoading = BaseModule.IsLoading;
-
-                if (BaseModule.CurrentStage == Stage.Prelude && prevIsLoading && !IsLoading)
+                if(currentStage == Stage.Prelude && newGame)
                 {
                     try
                     {
+                        Stream.Write(Encoding.UTF8.GetBytes("reset\r\n"), 0, Encoding.UTF8.GetBytes("reset\r\n").Length);
                         Stream.Write(Encoding.UTF8.GetBytes("starttimer\r\n"), 0, Encoding.UTF8.GetBytes("starttimer\r\n").Length);
+                        newGame = false;
                     }
                     catch (SocketException ex)
                     {
@@ -261,20 +300,11 @@ namespace SpeedrunUtils
 
         public void Update()
         {
-            prevTimer += Time.deltaTime;
-
-            if(IsConnectedToLivesplit)
+            if(IsConnectedToLivesplit || debug)
             {
                 UpdateAutosplitter();
             }
 
-            if(prevTimer >= prevInterval && IsConnectedToLivesplit)
-            {
-                prevIsLoading = IsLoading;
-                prevStage = BaseModule.CurrentStage;
-                prevObjective = objective;
-                prevFinalBossHit = finalBossHit;
-            }
 
             //Debug.Log($"Current Objective: {objective}. Previous Objective: {prevObjective}");
             //Debug.Log(string.Join("\n", SplitArray));
