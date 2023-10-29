@@ -1,5 +1,3 @@
-# SpeedrunUtils
-
 ## Features
 - Built in FPS limiter that can be used as a replacement for RivaTuner
 - A new autosplitter that's more accurate, more stable and easier to maintain
