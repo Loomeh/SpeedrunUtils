@@ -17,7 +17,7 @@ namespace SpeedrunUtils
         public bool open = false;
 
         private Rect winRect = new(20, 20, 275, 200);
-        private Rect debugRect = new(20, 40, 275, 150);
+        private Rect debugRect = new(20, 40, 275, 175);
 
         public string fpsCapStr = "";
         public int fpsCapInt = -1;
@@ -100,7 +100,7 @@ namespace SpeedrunUtils
         {
             if (open)
             {
-                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} (1.3.3)");
+                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} (1.3.4)");
             }
 
             if(lsCon.debug)
@@ -184,6 +184,9 @@ namespace SpeedrunUtils
             dOY += 10 + 5;
 
             GUI.Label(new(dOX, dOY, dMX, 20), $"Cutscene ID: {lsCon.sequenceName}");
+            dOY += 10 + 5;
+
+            GUI.Label(new(dOX, dOY, dMX, 20), $"Loading: {lsCon.IsLoading}");
             dOY += 10 + 5;
 
             GUI.DragWindow();

@@ -3,6 +3,7 @@ using Reptile;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -23,7 +24,7 @@ namespace SpeedrunUtils
         public bool debug = false;
 
         public BaseModule BaseModule;
-        private bool IsLoading;
+        public bool IsLoading;
         private bool prevIsLoading;
         public Story.ObjectiveID objective;
         public Story.ObjectiveID prevObjective;
@@ -41,6 +42,8 @@ namespace SpeedrunUtils
         public bool prevFinalBossHit;
         public bool isboostlocked;
         public bool inCutscene;
+        public bool IsLoadingNoExtend;
+        public bool prevIsLoadingNoExtend;
 
         public bool IsConnectedToLivesplit = false;
         public bool newGame;
@@ -109,8 +112,18 @@ namespace SpeedrunUtils
 
                 if (BaseModule != null)
                 {
-                    prevIsLoading = IsLoading;
-                    IsLoading = BaseModule.IsLoading;
+                    if (BaseModule.StageManager != null)
+                    {
+                        prevIsLoading = IsLoading;
+                        IsLoading = BaseModule.IsLoading || BaseModule.StageManager.IsExtendingLoadingScreen;
+                    }
+                    else
+                    {
+                        IsLoading = BaseModule.IsLoading;
+                    }
+
+                    prevIsLoadingNoExtend = IsLoadingNoExtend;
+                    IsLoadingNoExtend = BaseModule.IsLoading;
 
                     prevStage = currentStage;
                     currentStage = BaseModule.CurrentStage;
@@ -119,7 +132,7 @@ namespace SpeedrunUtils
                     prevFinalBossHit = finalBossHit;
                 }
 
-                if (prevIsLoading && !IsLoading && Core.Instance.SaveManager != null && Core.Instance.SaveManager.CurrentSaveSlot != null && !Core.Instance.SaveManager.CurrentSaveSlot.fortuneAppLocked)
+                if (prevIsLoadingNoExtend && !IsLoadingNoExtend && Core.Instance.SaveManager != null && Core.Instance.SaveManager.CurrentSaveSlot != null && !Core.Instance.SaveManager.CurrentSaveSlot.fortuneAppLocked)
                 {
                     newGame = true;
                 }
@@ -151,7 +164,7 @@ namespace SpeedrunUtils
             {
                 UpdateFields();
 
-                if(currentStage == Stage.Prelude && newGame)
+                if (currentStage == Stage.Prelude && newGame && !IsLoading)
                 {
                     try
                     {
@@ -220,41 +233,43 @@ namespace SpeedrunUtils
                 if (
                     (currentStage == Stage.hideout && prevStage == Stage.Prelude && SplitArray[0])
                     ||
-                    (currentStage == Stage.downhill && (prevStage == Stage.hideout || prevStage == Stage.square) && (objective == Story.ObjectiveID.EscapePoliceStation || objective == Story.ObjectiveID.JoinTheCrew || objective == Story.ObjectiveID.BeatFranks) && SplitArray[1])
+                    (currentStage == Stage.square && prevStage == Stage.osaka && (objective == Story.ObjectiveID.EscapePoliceStation || objective == Story.ObjectiveID.JoinTheCrew) && SplitArray[1])
                     ||
-                    (objective == Story.ObjectiveID.DJChallenge1 && (prevObjective == Story.ObjectiveID.BeatFranks || prevObjective == Story.ObjectiveID.EscapePoliceStation) && SplitArray[2])
+                    (currentStage == Stage.downhill && (prevStage == Stage.hideout || prevStage == Stage.square) && (objective == Story.ObjectiveID.EscapePoliceStation || objective == Story.ObjectiveID.JoinTheCrew || objective == Story.ObjectiveID.BeatFranks) && SplitArray[2])
                     ||
-                    (currentStage == Stage.hideout && prevStage == Stage.downhill && objective == Story.ObjectiveID.GoToSquare && SplitArray[3]) // Broken
+                    (objective == Story.ObjectiveID.DJChallenge1 && (prevObjective == Story.ObjectiveID.BeatFranks || prevObjective == Story.ObjectiveID.EscapePoliceStation) && SplitArray[3])
                     ||
-                    (currentStage == Stage.tower && prevStage == Stage.square && objective == Story.ObjectiveID.BeatEclipse && SplitArray[4]) // Broken
+                    (currentStage == Stage.hideout && prevStage == Stage.downhill && objective == Story.ObjectiveID.GoToSquare && SplitArray[4])
                     ||
-                    (currentStage == Stage.tower && objective == Story.ObjectiveID.DJChallenge2 && prevObjective == Story.ObjectiveID.BeatEclipse && SplitArray[5])
+                    (currentStage == Stage.tower && prevStage == Stage.square && objective == Story.ObjectiveID.BeatEclipse && SplitArray[5])
                     ||
-                    (currentStage == Stage.hideout && prevStage == Stage.tower && objective == Story.ObjectiveID.BeatDotExe && SplitArray[6])
+                    (currentStage == Stage.tower && objective == Story.ObjectiveID.DJChallenge2 && prevObjective == Story.ObjectiveID.BeatEclipse && SplitArray[6])
                     ||
-                    (currentStage == Stage.Mall && prevStage == Stage.square && objective == Story.ObjectiveID.BeatDotExe && SplitArray[7])
+                    (currentStage == Stage.hideout && prevStage == Stage.tower && objective == Story.ObjectiveID.BeatDotExe && SplitArray[7])
                     ||
-                    (currentStage == Stage.Mall && objective == Story.ObjectiveID.DJChallenge3 && prevObjective == Story.ObjectiveID.BeatDotExe && SplitArray[8])
+                    (currentStage == Stage.Mall && prevStage == Stage.square && objective == Story.ObjectiveID.BeatDotExe && SplitArray[8])
                     ||
-                    (currentStage == Stage.hideout && prevStage == Stage.Mall && objective == Story.ObjectiveID.SearchForPrince && SplitArray[9])
+                    (currentStage == Stage.Mall && objective == Story.ObjectiveID.DJChallenge3 && prevObjective == Story.ObjectiveID.BeatDotExe && SplitArray[9])
                     ||
-                    (currentStage == Stage.downhill && objective == Story.ObjectiveID.SearchForPrince2 && prevObjective == Story.ObjectiveID.SearchForPrince && SplitArray[10])
+                    (currentStage == Stage.hideout && prevStage == Stage.Mall && objective == Story.ObjectiveID.SearchForPrince && SplitArray[10])
                     ||
-                    (currentStage == Stage.square && objective == Story.ObjectiveID.SearchForPrince3 && prevObjective == Story.ObjectiveID.SearchForPrince2 && SplitArray[11])
+                    (currentStage == Stage.downhill && objective == Story.ObjectiveID.SearchForPrince2 && prevObjective == Story.ObjectiveID.SearchForPrince && SplitArray[11])
                     ||
-                    (currentStage == Stage.tower && objective == Story.ObjectiveID.SearchForPrince4 && prevObjective == Story.ObjectiveID.SearchForPrince3 && SplitArray[12])
+                    (currentStage == Stage.square && objective == Story.ObjectiveID.SearchForPrince3 && prevObjective == Story.ObjectiveID.SearchForPrince2 && SplitArray[12])
                     ||
-                    (currentStage == Stage.hideout && prevStage == Stage.osaka && objective == Story.ObjectiveID.BeatSamurai && SplitArray[13])
+                    (currentStage == Stage.tower && objective == Story.ObjectiveID.SearchForPrince4 && prevObjective == Story.ObjectiveID.SearchForPrince3 && SplitArray[13])
                     ||
-                    (currentStage == Stage.pyramid && prevStage == Stage.square && (objective == Story.ObjectiveID.SearchForPrince || objective == Story.ObjectiveID.BeatSamurai) && SplitArray[13])
+                    (currentStage == Stage.hideout && prevStage == Stage.osaka && objective == Story.ObjectiveID.BeatSamurai && SplitArray[14])
                     ||
-                    (currentStage == Stage.pyramid && objective == Story.ObjectiveID.DJChallenge4 && prevObjective == Story.ObjectiveID.BeatSamurai && SplitArray[14])
+                    (currentStage == Stage.pyramid && prevStage == Stage.square && (objective == Story.ObjectiveID.SearchForPrince || objective == Story.ObjectiveID.BeatSamurai) && SplitArray[14])
                     ||
-                    (currentStage == Stage.pyramid && objective == Story.ObjectiveID.DJChallenge4 && prevObjective == Story.ObjectiveID.SearchForPrince && SplitArray[14])
+                    (currentStage == Stage.pyramid && objective == Story.ObjectiveID.DJChallenge4 && prevObjective == Story.ObjectiveID.BeatSamurai && SplitArray[15])
                     ||
-                    (currentStage == Stage.hideout && prevStage == Stage.pyramid && objective == Story.ObjectiveID.BeatOsaka && SplitArray[15])
+                    (currentStage == Stage.pyramid && objective == Story.ObjectiveID.DJChallenge4 && prevObjective == Story.ObjectiveID.SearchForPrince && SplitArray[15])
                     ||
-                    (currentStage == Stage.osaka && (objective == Story.ObjectiveID.BeatOsaka || objective == Story.ObjectiveID.FinalBoss) && finalBossHit && !prevFinalBossHit && SplitArray[16])
+                    (currentStage == Stage.hideout && prevStage == Stage.pyramid && objective == Story.ObjectiveID.BeatOsaka && SplitArray[16])
+                    ||
+                    (currentStage == Stage.osaka && (objective == Story.ObjectiveID.BeatOsaka || objective == Story.ObjectiveID.FinalBoss) && finalBossHit && !prevFinalBossHit && SplitArray[17])
                     )
                 {
                         // Stupid hack because it splits on main menu for some reason.
