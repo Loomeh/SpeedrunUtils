@@ -28,10 +28,20 @@ You can install SpeedrunUtils with a batch script. You can download the batch fi
 ```
 curl https://raw.githubusercontent.com/Loomeh/SpeedrunUtilsInstaller/main/InstallSpeedrunUtils.bat -o %temp%\sruinstall.bat && %temp%\sruinstall.bat
 ```
+Then add the LiveSplit Server component to your LiveSplit layout by going to Edit Layout -> Add -> Control -> LiveSplit Server. Activate the server by right click LiveSplit -> Control -> Start Server.
 
 ### Manually
-If you've installed SpeedUtils or NinjaUtils then all you need is to download the [SpeedrunUtils DLL](https://github.com/Loomeh/SpeedrunUtils/releases/latest) and place it in your BepInEx Plugins folder.
+If you've installed SpeedUtils or NinjaUtils:
+- Download the [SpeedrunUtils DLL](https://github.com/Loomeh/SpeedrunUtils/releases/latest) and place it in your BepInEx Plugins folder
+- Download the [LiveSplit Server Component](https://github.com/LiveSplit/LiveSplit.Server/releases/tag/1.8.19)
+- Extract its contents into your LiveSplit Components folder
+- Then add the LiveSplit Server component to your LiveSplit layout by going to Edit Layout -> Add -> Control -> LiveSplit Server.
+- Activate the server by right click LiveSplit -> Control -> Start Server.
+
+
 If you haven't then follow these instructions:
 - Download [BepInEx 5.4.21](https://github.com/BepInEx/BepInEx/releases/tag/v5.4.21) and extract it to your BRCF install directory.
 - Open Bomb Rush Cyberfunk so BepInEx will run its setup, then close the game once you're at the main menu.
 - Download `SpeedrunUtils.dll` from [GitHub](https://github.com/Loomeh/SpeedrunUtils/releases/latest) and place it into `[BRCF Install Dir]\BepInEx\plugins`
+- Then add the LiveSplit Server component to your LiveSplit layout by going to Edit Layout -> Add -> Control -> LiveSplit Server.
+- Activate the server by right click LiveSplit -> Control -> Start Server.
