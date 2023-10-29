@@ -1,5 +1,27 @@
 # SpeedrunUtils
 
+## Features
+- Built in FPS limiter that can be used as a replacement for RivaTuner
+- A new autosplitter that's more accurate, more stable and easier to maintain
+
+## How to use
+` to open the GUI.
+
+By default, the O key will uncap your framerate and the P key will limit your framerate to 30FPS. If you want to change this. Read "How to configure".
+
+If LiveSplit is open, SpeedrunUtils will automatically connect to it. However, if you've opened LiveSplit after you opened your game, you can attempt to connect to it by opening the GUI and clicking "Connect to LiveSplit".
+
+Enter your framerate into the input field and click "Set FPS" to set your framerate cap.
+
+## How to configure
+SpeedrunUtils by default is set up to automatically work with the current fastest Any% route so if you're doing that then you don't need to do any configuration at all. However, if you want some extra splits, want to change frame limiting keys or are deviating from the current route (Doing the Flesh Prince challenges) then you need to do some configuration.
+
+First, open the game so that it can download the files it needs. Then go to your game directory -> BepInEx -> config -> SpeedrunUtils.
+
+If you want to change your frame limiting keys then open Keys.txt.
+If you want to change your splits then open splits.txt.
+
+
 ## How to install
 You can install SpeedrunUtils with a batch script. You can download the batch file [here](https://raw.githubusercontent.com/Loomeh/SpeedrunUtilsInstaller/main/InstallSpeedrunUtils.bat) or just copy and paste this command into command prompt.
 
