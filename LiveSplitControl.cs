@@ -26,11 +26,11 @@ namespace SpeedrunUtils
         public BaseModule BaseModule;
         public bool IsLoading;
         private bool prevIsLoading;
-        public Story.ObjectiveID objective;
-        public Story.ObjectiveID prevObjective;
-        public Stage currentStage;
-        public Stage prevStage;
-        public SequenceState sequenceState;
+        public Story.ObjectiveID objective = Story.ObjectiveID.NONE;
+        public Story.ObjectiveID prevObjective = Story.ObjectiveID.NONE;
+        public Stage currentStage = Stage.NONE;
+        public Stage prevStage = Stage.NONE;
+        public SequenceState sequenceState = SequenceState.NONE;
         public SequenceHandler sequenceHandler;
         public PlayableDirector sequence;
         public string sequenceName;
@@ -52,7 +52,6 @@ namespace SpeedrunUtils
 
         private string IpAddress = "127.0.0.1";
         private int Port = 16834;
-
 
         private bool HasSentPauseCommand = false;
 
@@ -127,9 +126,6 @@ namespace SpeedrunUtils
 
                     prevStage = currentStage;
                     currentStage = BaseModule.CurrentStage;
-
-                    prevObjective = objective;
-                    prevFinalBossHit = finalBossHit;
                 }
 
                 if (prevIsLoadingNoExtend && !IsLoadingNoExtend && Core.Instance.SaveManager != null && Core.Instance.SaveManager.CurrentSaveSlot != null && !Core.Instance.SaveManager.CurrentSaveSlot.fortuneAppLocked)
@@ -151,10 +147,17 @@ namespace SpeedrunUtils
                 if (finalBossHit && currentStage != Stage.osaka) { finalBossHit = false; }
 
                 if (finalBossGO == null && currentStage == Stage.osaka && (objective == Story.ObjectiveID.BeatOsaka || objective == Story.ObjectiveID.FinalBoss)) { finalBossGO = GameObject.FindGameObjectWithTag("SnakebossHead"); }
-                if (finalBossGO != null) { finalBossHit = finalBossGO.transform.GetComponent<SnakeBossChestImpactReceiver>().WasHit; }
+                if (finalBossGO != null)
+                {
+                    prevFinalBossHit = finalBossHit;
+                    finalBossHit = finalBossGO.transform.GetComponent<SnakeBossChestImpactReceiver>().WasHit;
+                }
 
-
-                objective = Core.Instance.SaveManager.CurrentSaveSlot.CurrentStoryObjective;
+                if (Core.Instance.SaveManager != null && Core.Instance.SaveManager.CurrentSaveSlot != null)
+                {
+                    prevObjective = objective;
+                    objective = Core.Instance.SaveManager.CurrentSaveSlot.CurrentStoryObjective;
+                }
             }
         }
 
@@ -321,11 +324,6 @@ namespace SpeedrunUtils
 
                 SplitArray = tempList.ToArray();
             }
-
-
-            //Debug.Log($"Current Objective: {objective}. Previous Objective: {prevObjective}");
-            //Debug.Log(string.Join("\n", SplitArray));
-            //Debug.Log(BaseModule.CurrentStage);
         }
 
         public void OnApplicationQuit()
