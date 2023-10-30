@@ -23,13 +23,31 @@ namespace SpeedrunUtils
         public int fpsCapInt = -1;
         public bool limiting = false;
         public bool uncapped = false;
-        public KeyCode uncapKey;
-        public KeyCode limitKey;
+        public KeyCode limitKey = KeyCode.O;
+        public KeyCode uncapKey = KeyCode.P;
 
-        public static string configFolder = Paths.ConfigPath + "\\" + "SpeedrunUtils\\";
+        private GUIStyle currentStyle;
+
+        public static string configFolder = Paths.ConfigPath + @"\SpeedrunUtils\";
         private string filePath = Path.Combine(configFolder, "FPS.txt");
         private string keyConfigPath = Path.Combine(configFolder, "Keys.txt");
         private readonly string SplitsPath = Path.Combine(configFolder, "splits.txt");
+        private readonly string fpsDisplayPath = Path.Combine(configFolder, "FPSDisplay.txt");
+
+        static int screenHeight = Screen.height;
+        static int screenWidth = Screen.width;
+
+        private Rect screenBounds = new Rect(0, 0, screenWidth, screenHeight);
+
+        private int guiX = (screenWidth / 2) - (600 / 2);
+        private int guiY = (screenHeight / 2) - (((screenHeight) - (screenHeight / 20)) / 2);
+        private int guiW = 600;
+        private int guiH = (screenHeight) - (screenHeight / 20);
+
+        private bool shouldFPSDisplay = true;
+        private int fpsSize = 30;
+        private int fpsXPos = 10;
+        private int fpsYPos = 5;
 
         public void configureKeys()
         {
@@ -49,10 +67,55 @@ namespace SpeedrunUtils
                 }
             }
 
-            limitKey = (KeyCode)System.Enum.Parse(typeof(KeyCode), tempList[1], true);
-            uncapKey = (KeyCode)System.Enum.Parse(typeof(KeyCode), tempList[0], true);
+            if (System.Enum.TryParse(tempList[0], out KeyCode keycode_limit))
+            {
+                limitKey = (KeyCode)System.Enum.Parse(typeof(KeyCode), tempList[0], true);
+            }
+
+            if (System.Enum.TryParse(tempList[1], out KeyCode keycode_uncap))
+            {
+                uncapKey = (KeyCode)System.Enum.Parse(typeof(KeyCode), tempList[1], true);
+            }
         }
 
+        public void configFPSDisplay() 
+        {
+            string[] lines = File.ReadAllLines(fpsDisplayPath);
+
+            List<string> tempList = new List<string>();
+
+            foreach (var line in lines)
+            {
+                if (!string.IsNullOrWhiteSpace(line) && line.Contains(','))
+                {
+                    string[] parts = line.Split(',');
+                    if (parts.Length >= 2)
+                    {
+                        tempList.Add(parts[1]);
+                    }
+                }
+            }
+
+            if (bool.TryParse(tempList[0], out bool fpsbool))
+            {
+                shouldFPSDisplay = fpsbool;
+            }
+
+            if (Int32.TryParse(tempList[1], out Int32 size))
+            {
+                fpsSize = size;
+            }
+
+            if (Int32.TryParse(tempList[2], out Int32 xpos))
+            {
+                fpsXPos = xpos;
+            }
+
+            if (Int32.TryParse(tempList[3], out Int32 ypos))
+            {
+                fpsYPos = ypos;
+            }
+        }
 
         public void Start()
         {
@@ -62,14 +125,17 @@ namespace SpeedrunUtils
             }
             else
             {
-                if (File.Exists(filePath))
+                if (!File.Exists(filePath)) 
                 {
-                    using (StreamReader sr = File.OpenText(filePath))
+                    using (FileStream fs = File.Create(filePath))
                     {
-                        fpsCapStr = sr.ReadToEnd();
-                        fpsCapInt = Int32.Parse(fpsCapStr);
+                        String fpsBytes = "30";
+                        byte[] buf = new UTF8Encoding(true).GetBytes(fpsBytes);
+                        fs.Write(buf, 0, fpsBytes.Length);
                     }
                 }
+
+                ReadFPSFile();
 
                 if (!File.Exists(SplitsPath))
                 {
@@ -89,6 +155,16 @@ namespace SpeedrunUtils
                     configureKeys();
                 }
 
+                if (File.Exists(fpsDisplayPath))
+                {
+                    configFPSDisplay();
+                }
+                else
+                {
+                    File.WriteAllText(fpsDisplayPath, "Display FPS,true\nSize,30\nX Pos,10\nY Pos,5");
+                    configFPSDisplay();
+                }
+
                 lsCon = FindObjectOfType<LiveSplitControl>();
 
                 // This function seems to hang up the Start function so make sure it's always put last.
@@ -96,15 +172,47 @@ namespace SpeedrunUtils
             }
         }
 
+        private void ReadFPSFile() 
+        {
+            if (File.Exists(filePath))
+            {
+                using (StreamReader sr = File.OpenText(filePath))
+                {
+                    fpsCapStr = sr.ReadToEnd();
+
+                    if (Int32.TryParse(fpsCapStr, out int i) && Int32.Parse(fpsCapStr) >= 30)
+                    {
+                        fpsCapInt = i;
+                    }
+                    else
+                    {
+                        fpsCapInt = 300;
+                        fpsCapStr = "300";
+                    }
+                }
+            }
+        }
+
         public void OnGUI()
         {
             if (open)
             {
+                GUI.color = new Color(0, 0, 0, 1);
                 winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} (1.3.4)");
             }
-
-            if(lsCon.debug)
+            else if (shouldFPSDisplay)
             {
+                screenHeight = Screen.height;
+                screenWidth = Screen.width;
+                screenBounds = new Rect(0, 0, screenWidth, screenHeight);
+
+                GUI.color = new Color(0, 0, 0, 0);
+                screenBounds = GUI.Window(0, screenBounds, FPSDisplay, "");
+            }
+
+            if (lsCon.debug)
+            {
+                GUI.color = new Color(0, 0, 0, 1);
                 debugRect = GUI.Window(1, debugRect, DebugWinProc, "SpeedrunUtils Debug Mode");
             }
         }
@@ -112,15 +220,17 @@ namespace SpeedrunUtils
         private void WinProc(int id)
         {
             var ox = 15f;
-            var oy = 30f;
+            var oy = 18f;
             
             var mx = winRect.width - 30;
 
-
-            GUI.Label(new(ox, oy, mx, 20), $"FPS Limit: {(limiting ? "<color=green>On</color>" : "<color=red>Off</color>")}");
+            GUI.Label(new(ox, oy, mx, 20), $"FPS: {1 / Time.deltaTime:F0}");
             oy += 10 + 5;
 
-            GUI.Label(new(ox, oy, mx, 20), $"Uncapped: {(uncapped ? "<color=green>On</color>" : "<color=red>Off</color>")}");
+            GUI.Label(new(ox, oy, mx, 20), $"FPS Limit ({limitKey.ToString()}): {(limiting ? "<color=green>On</color>" : "<color=red>Off</color>")}");
+            oy += 10 + 5;
+
+            GUI.Label(new(ox, oy, mx, 20), $"Uncapped ({uncapKey.ToString()}): {(uncapped ? "<color=green>On</color>" : "<color=red>Off</color>")}");
             oy += 10 + 10;
 
             GUI.Label(new(ox, oy, mx, 20), $"{(lsCon.IsConnectedToLivesplit ? "<color=green>Connected to LiveSplit</color>" : "<color=red>Not connected to LiveSplit</color>")}");
@@ -128,13 +238,19 @@ namespace SpeedrunUtils
 
 
             fpsCapStr = GUI.TextField(new Rect(ox, oy, mx, 20), fpsCapStr, 4);
-
-
+            
             oy += 10 + 10;
 
             if (GUI.Button(new Rect(ox, oy, mx, 20), "Set FPS"))
             {
-                fpsCapInt = Int32.Parse(fpsCapStr);
+                if (Int32.TryParse(fpsCapStr, out int i) && Int32.Parse(fpsCapStr) >= 30)
+                {
+                    fpsCapInt = i;
+                }
+                else
+                {
+                    ReadFPSFile();
+                }
 
                 if (File.Exists(filePath))
                     File.Delete(filePath);
@@ -162,6 +278,28 @@ namespace SpeedrunUtils
             oy += 10 + 5;
 
             GUI.DragWindow();
+        }
+
+        private void FPSDisplay(int id)
+        {
+            CreateText(fpsXPos, fpsYPos, 600, 600, new Color(1, 1, 1, 0.5f), $"{1 / Time.deltaTime:F0}");
+        }
+
+        void CreateText(int x, int y, int width, int height, Color color, String text, bool backdrop = true)
+        {
+            currentStyle = new GUIStyle(GUI.skin.label);
+            currentStyle.fontSize = fpsSize;
+            currentStyle.fontStyle = FontStyle.Bold;
+            currentStyle.alignment = TextAnchor.UpperLeft;
+
+            if (backdrop)
+            {
+                GUI.color = new Color(0, 0, 0, color.a);
+                GUI.Label(new Rect(x + 2, y + 2, width, height), text, currentStyle);
+            }
+
+            GUI.color = color;
+            GUI.Label(new Rect(x, y, width, height), text, currentStyle);
         }
 
         private void DebugWinProc(int id)
