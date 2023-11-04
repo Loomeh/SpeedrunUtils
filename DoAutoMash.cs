@@ -31,7 +31,7 @@ namespace SpeedrunUtils
         DialogueBehaviour currentDialogue;
         bool fastForwardTypewriter;
 
-        bool autoMash = true;
+        public bool autoMash = true;
 
         private void Update()
         {
