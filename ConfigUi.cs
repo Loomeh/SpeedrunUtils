@@ -1,4 +1,6 @@
+using AutoMash;
 using BepInEx;
+using Reptile;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,6 +27,7 @@ namespace SpeedrunUtils
         public bool uncapped = false;
         public KeyCode limitKey = KeyCode.O;
         public KeyCode uncapKey = KeyCode.P;
+        public KeyCode autoMashKey = KeyCode.T;
 
         private GUIStyle currentStyle;
 
@@ -32,22 +35,16 @@ namespace SpeedrunUtils
         private string filePath = Path.Combine(configFolder, "FPS.txt");
         private string keyConfigPath = Path.Combine(configFolder, "Keys.txt");
         private readonly string SplitsPath = Path.Combine(configFolder, "splits.txt");
-        private readonly string fpsDisplayPath = Path.Combine(configFolder, "FPSDisplay.txt");
-
-        static int screenHeight = Screen.height;
-        static int screenWidth = Screen.width;
-
-        private Rect screenBounds = new Rect(0, 0, screenWidth, screenHeight);
-
-        private int guiX = (screenWidth / 2) - (600 / 2);
-        private int guiY = (screenHeight / 2) - (((screenHeight) - (screenHeight / 20)) / 2);
-        private int guiW = 600;
-        private int guiH = (screenHeight) - (screenHeight / 20);
+        private readonly string fpsDisplayPath = Path.Combine(configFolder, "Settings.txt");
 
         private bool shouldFPSDisplay = true;
         private int fpsSize = 30;
         private int fpsXPos = 10;
         private int fpsYPos = 5;
+
+        private bool autoMashState = true;
+        private const float showAutoMashLengthMax = 2f;
+        private float showAutoMashLength = showAutoMashLengthMax;
 
         public void configureKeys()
         {
@@ -75,6 +72,11 @@ namespace SpeedrunUtils
             if (System.Enum.TryParse(tempList[1], out KeyCode keycode_uncap))
             {
                 uncapKey = (KeyCode)System.Enum.Parse(typeof(KeyCode), tempList[1], true);
+            }
+
+            if (System.Enum.TryParse(tempList[2], out KeyCode keycode_automash))
+            {
+                autoMashKey = (KeyCode)System.Enum.Parse(typeof(KeyCode), tempList[2], true);
             }
         }
 
@@ -115,6 +117,12 @@ namespace SpeedrunUtils
             {
                 fpsYPos = ypos;
             }
+
+            if (bool.TryParse(tempList[4], out bool autoMashEnabled))
+            {
+                DoAutoMash.Instance.autoMash = autoMashEnabled;
+                autoMashState = autoMashEnabled;
+            }
         }
 
         public void Start()
@@ -129,7 +137,7 @@ namespace SpeedrunUtils
                 {
                     using (FileStream fs = File.Create(filePath))
                     {
-                        String fpsBytes = "30";
+                        String fpsBytes = "300";
                         byte[] buf = new UTF8Encoding(true).GetBytes(fpsBytes);
                         fs.Write(buf, 0, fpsBytes.Length);
                     }
@@ -151,7 +159,7 @@ namespace SpeedrunUtils
                 }
                 else
                 {
-                    File.WriteAllText(keyConfigPath, "Limit framerate,O\nUncap framerate,P");
+                    File.WriteAllText(keyConfigPath, "Limit framerate,O\nUncap framerate,P\nAutoMash Toggle,T");
                     configureKeys();
                 }
 
@@ -161,7 +169,13 @@ namespace SpeedrunUtils
                 }
                 else
                 {
-                    File.WriteAllText(fpsDisplayPath, "Display FPS,true\nSize,30\nX Pos,10\nY Pos,5");
+                    File.WriteAllText(fpsDisplayPath,
+                        "Display FPS,true\n" +
+                        "FPS Size,30\n" +
+                        "FPS X Pos,10\n" +
+                        "FPS Y Pos,5\n" +
+                        "AutoMash Starts Enabled,true");
+
                     configFPSDisplay();
                 }
 
@@ -200,14 +214,38 @@ namespace SpeedrunUtils
                 GUI.color = new Color(0, 0, 0, 1);
                 winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} (1.3.4)");
             }
-            else if (shouldFPSDisplay)
-            {
-                screenHeight = Screen.height;
-                screenWidth = Screen.width;
-                screenBounds = new Rect(0, 0, screenWidth, screenHeight);
 
+            if (shouldFPSDisplay)
+            {
                 GUI.color = new Color(0, 0, 0, 0);
-                screenBounds = GUI.Window(0, screenBounds, FPSDisplay, "");
+                CreateText(fpsXPos, fpsYPos, 600, 600, new Color(1, 1, 1, 0.5f), $"{1 / Time.deltaTime:F0}");
+            }
+
+            if (DoAutoMash.Instance.autoMash)
+            {
+                if (!autoMashState) { showAutoMashLength = 0f; }
+
+                if (showAutoMashLength < showAutoMashLengthMax)
+                {
+                    GUI.color = new Color(0, 0, 0, 0);
+                    CreateText(20, Screen.height - 40, 600, 600, new Color(0.2f, 1, 0.2f, 0.5f), "AutoMash Enabled");
+
+                    autoMashState = true;
+                    showAutoMashLength += Core.dt;
+                }
+            }
+            else if (!DoAutoMash.Instance.autoMash)
+            {
+                if (autoMashState) { showAutoMashLength = 0f; }
+
+                if (showAutoMashLength < showAutoMashLengthMax)
+                {
+                    GUI.color = new Color(0, 0, 0, 0);
+                    CreateText(20, Screen.height - 40, 600, 600, new Color(1, 0.2f, 0.2f, 0.5f), "AutoMash Disabled");
+
+                    autoMashState = false;
+                    showAutoMashLength += Core.dt;
+                }
             }
 
             if (lsCon.debug)
@@ -280,11 +318,6 @@ namespace SpeedrunUtils
             GUI.DragWindow();
         }
 
-        private void FPSDisplay(int id)
-        {
-            CreateText(fpsXPos, fpsYPos, 600, 600, new Color(1, 1, 1, 0.5f), $"{1 / Time.deltaTime:F0}");
-        }
-
         void CreateText(int x, int y, int width, int height, Color color, String text, bool backdrop = true)
         {
             currentStyle = new GUIStyle(GUI.skin.label);
@@ -351,8 +384,12 @@ namespace SpeedrunUtils
                     limiting = false;
             }
 
+            if (Input.GetKeyDown(autoMashKey))
+            {
+                DoAutoMash.Instance.autoMash = !DoAutoMash.Instance.autoMash;
+            }
 
-            if(QualitySettings.vSyncCount > 0)
+            if (QualitySettings.vSyncCount > 0)
             {
                 QualitySettings.vSyncCount = 0;
             }
