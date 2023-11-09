@@ -211,7 +211,7 @@ namespace SpeedrunUtils
             if (open)
             {
                 GUI.color = new Color(0, 0, 0, 1);
-                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} (1.3.4)");
+                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} (1.3.6)");
             }
 
             if (shouldFPSDisplay)
