@@ -331,19 +331,19 @@ namespace SpeedrunUtils
                     {
                         CreateBox(10, 7, guiWidth, guiHeight, new Color(0, 0, 0, 0.3f));
                         int curY = 12;
-                        CreateText(15, curY, 495, 300, 16, new Color(1, 0.5f, 0, 1), "Keys:");
+                        CreateText(15, curY, 495, 300, 16, new Color(1, 0.8f, 0.3f, 1), "Keys:");
                         curY += 21;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=cyan>{key_limitFPS}</color> = Lock FPS ({(limitingFPS ? "<color=red>locked</color>" : "<color=green>unlocked</color>")})");
+                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_limitFPS}</color> = Lock FPS ({(limitingFPS ? "<color=#9ef7a3>Enabled</color>" : "<color=#f27e7e>Disabled</color>")})");
                         curY += 12;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=cyan>{key_uncapFPS}</color> = Uncap FPS ({(fpsUncapped ? "<color=green>uncapped</color>" : "<color=red>capped</color>")})");
+                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_uncapFPS}</color> = Uncap FPS ({(fpsUncapped ? "<color=#9ef7a3>Enabled</color>" : "<color=#f27e7e>Disabled</color>")})");
                         curY += 12;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=cyan>{key_automash}</color> = Toggle AutoMash ({(DoAutoMash.Instance.autoMash ? "<color=green>Enabled</color>" : "<color=red>Disabled</color>")})");
+                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_automash}</color> = Toggle AutoMash ({(DoAutoMash.Instance.autoMash ? "<color=#9ef7a3>Enabled</color>" : "<color=#f27e7e>Disabled</color>")})");
                         curY += 12;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=cyan>{key_toggleMenu}</color> = Toggle Menu");
+                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_toggleMenu}</color> = Toggle Menu");
                         curY += 27;
-                        CreateText(15, curY, 495, 300, 16, new Color(1, 0.5f, 0, 1), $"FPS Cap ({setting_FPScap}):");
+                        CreateText(15, curY, 495, 300, 16, new Color(1, 0.8f, 0.3f, 1), $"FPS Cap ({setting_FPScap}):");
                         curY += 21;
-                        GUI.color = new Color(1, 0.5f, 0, 1);
+                        GUI.color = new Color(1, 0.8f, 0.3f, 1);
                         fpsCap = GUI.TextArea(new Rect(15, curY, guiWidth / 3, 21), fpsCap);
                         if (!int.TryParse(fpsCap, out int validFPS) && fpsCap != String.Empty) { fpsCap = lastValidFPS; } else { if (fpsCap != String.Empty) { lastValidFPS = validFPS.ToString(); } }
                         if (CreateButton((guiWidth / 3) + 20, curY, guiWidth - (guiWidth / 3) - 15, 21, "Set FPS Cap", new Color(0.2f, 0.2f, 0.2f, 1), new Color(0.4f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
@@ -361,7 +361,7 @@ namespace SpeedrunUtils
                             fpsUncapped = false;
                         }
                         curY += 26;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 0.5f, 0, 1), $"{(lsCon.IsConnectedToLivesplit ? "<color=green>Connected to LiveSplit</color>" : "<color=red>Not connected to LiveSplit</color>")}");
+                        CreateText(15, curY, 495, 300, 12, new Color(1, 0.8f, 0.3f, 1), $"{(lsCon.IsConnectedToLivesplit ? "<color=green>Connected to LiveSplit</color>" : "<color=red>Not connected to LiveSplit</color>")}");
                         curY += 18;
                         if (CreateButton(15, curY, guiWidth - 10, 21, "Connect to LiveSplit", lsCon.IsConnectedToLivesplit ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), lsCon.IsConnectedToLivesplit ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
                         {
@@ -382,7 +382,7 @@ namespace SpeedrunUtils
                             string_displayFPS_y             = setting_displayFPS_y.ToString();
                         }
                         curY += 26;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 0.5f, 0, 1), "Developed by <color=purple>Loomeh</color> and <color=#F97CE4>Ninja Cookie</color>");
+                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), "Developed by <color=purple>Loomeh</color> and <color=#F97CE4>Ninja Cookie</color>");
                     }
                     if (guiID == 2)
                     {
@@ -575,7 +575,7 @@ namespace SpeedrunUtils
                     backdropText = Regex.Replace(backdropText, @"<([^>]+)>", "").Replace("<", "").Replace(">", "");
 
                 GUI.color = new Color(0, 0, 0, color.a);
-                GUI.Label(new Rect(x + 2, y + 2, width, height), backdropText, currentStyle);
+                GUI.Label(new Rect(x + 1, y + 1, width, height), backdropText, currentStyle);
             }
 
             GUI.color = color;
