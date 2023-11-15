@@ -18,7 +18,14 @@ namespace SpeedrunUtils
 {
     public class LiveSplitControl : MonoBehaviour
     {
-        private static readonly string ConfigPath = Paths.ConfigPath + "\\" + "SpeedrunUtils\\";
+        public static LiveSplitControl Instance;
+
+        public LiveSplitControl()
+        {
+            Instance = this;
+        }
+
+        private static readonly string ConfigPath = Paths.ConfigPath + @"\SpeedrunUtils\";
         private readonly string SplitsPath = Path.Combine(ConfigPath, "splits.txt");
 
         public bool debug = false;

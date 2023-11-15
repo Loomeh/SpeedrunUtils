@@ -8,8 +8,6 @@ namespace SpeedrunUtils
     {
         private GameObject _mod;
         private Tools _tools;
-        private LiveSplitControl _liveSplitControl;
-        private DoAutoMash _doAutoMash;
 
         private void Awake()
         {
@@ -18,9 +16,9 @@ namespace SpeedrunUtils
             _mod = new();
             _mod.AddComponent<LiveSplitControl>();
             _mod.AddComponent<DoAutoMash>();
-            _mod.AddComponent<ConfigUi>();
+            _mod.AddComponent<NinjaConfigUI>();
             _mod.AddComponent<Tools>();
-            GameObject.DontDestroyOnLoad(_mod);
+            DontDestroyOnLoad(_mod);
         }
     }
 }
