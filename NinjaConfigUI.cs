@@ -216,7 +216,7 @@ namespace SpeedrunUtils
             }
         }
 
-        void Update()
+        private void Update()
         {
             if (setupEnded)
             {
@@ -240,6 +240,16 @@ namespace SpeedrunUtils
                         Application.targetFrameRate = setting_FPScap;
                 }
             }
+
+            if(open)
+            {
+                UnityEngine.Cursor.visible = true;
+            }
+            else if (lsCon.BaseModule.IsPlayingInStage && !open)
+            {
+                UnityEngine.Cursor.visible = false;
+            }
+
         }
 
         private bool limitingFPS = false;
