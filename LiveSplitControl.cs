@@ -28,6 +28,7 @@ namespace SpeedrunUtils
         private static readonly string ConfigPath = Paths.ConfigPath + @"\SpeedrunUtils\";
         private readonly string SplitsPath = Path.Combine(ConfigPath, "splits.txt");
         private readonly string ipPath = Path.Combine(ConfigPath, "IP.txt");
+        private readonly string langPath = Path.Combine(ConfigPath, "LANG.txt");
 
         public bool debug = false;
 
@@ -66,10 +67,17 @@ namespace SpeedrunUtils
         private TcpClient Client = null;
         private NetworkStream Stream = null;
 
+        public string lang = "";
+
         public void Awake()
         {
             if(!Directory.Exists(ConfigPath))
                 Directory.CreateDirectory(ConfigPath);
+
+            if (!File.Exists(langPath))
+                File.WriteAllText(langPath, "EN");
+            else
+                lang = File.ReadAllText(langPath);
 
             setIpAddr();
         }

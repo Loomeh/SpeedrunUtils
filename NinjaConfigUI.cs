@@ -314,7 +314,11 @@ namespace SpeedrunUtils
                 if (showAutoMashLength < showAutoMashLengthMax)
                 {
                     GUI.color = new Color(0, 0, 0, 0);
-                    CreateText(20, Screen.height - 40, 600, 600, 30, new Color(0.2f, 1, 0.2f, 0.5f), "AutoMash Enabled");
+
+                    if(lsCon.lang == "EN")
+                        CreateText(20, Screen.height - 40, 600, 600, 30, new Color(0.2f, 1, 0.2f, 0.5f), "AutoMash Enabled");
+                    else if(lsCon.lang == "JPN")
+                        CreateText(20, Screen.height - 40, 600, 600, 30, new Color(0.2f, 1, 0.2f, 0.5f), "自動マッシング有効");
 
                     autoMashState = true;
                     showAutoMashLength += Core.dt;
@@ -327,7 +331,12 @@ namespace SpeedrunUtils
                 if (showAutoMashLength < showAutoMashLengthMax)
                 {
                     GUI.color = new Color(0, 0, 0, 0);
-                    CreateText(20, Screen.height - 40, 600, 600, 30, new Color(1, 0.2f, 0.2f, 0.5f), "AutoMash Disabled");
+
+
+                    if (lsCon.lang == "EN")
+                        CreateText(20, Screen.height - 40, 600, 600, 30, new Color(0.2f, 1, 0.2f, 0.5f), "AutoMash Disabled");
+                    else if (lsCon.lang == "JPN")
+                        CreateText(20, Screen.height - 40, 600, 600, 30, new Color(1, 0.2f, 0.2f, 0.5f), "自動マッシング無効");
 
                     autoMashState = false;
                     showAutoMashLength += Core.dt;
@@ -341,202 +350,412 @@ namespace SpeedrunUtils
                     {
                         CreateBox(10, 7, guiWidth, guiHeight, new Color(0, 0, 0, 0.3f));
                         int curY = 12;
-                        CreateText(15, curY, 495, 300, 16, new Color(1, 0.8f, 0.3f, 1), "Keys:");
-                        curY += 21;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_limitFPS}</color> = Lock FPS ({(limitingFPS ? "<color=#9ef7a3>Enabled</color>" : "<color=#f27e7e>Disabled</color>")})");
-                        curY += 12;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_uncapFPS}</color> = Uncap FPS ({(fpsUncapped ? "<color=#9ef7a3>Enabled</color>" : "<color=#f27e7e>Disabled</color>")})");
-                        curY += 12;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_automash}</color> = Toggle AutoMash ({(DoAutoMash.Instance.autoMash ? "<color=#9ef7a3>Enabled</color>" : "<color=#f27e7e>Disabled</color>")})");
-                        curY += 12;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_toggleMenu}</color> = Toggle Menu");
-                        curY += 27;
-                        CreateText(15, curY, 495, 300, 16, new Color(1, 0.8f, 0.3f, 1), $"FPS Cap ({setting_FPScap}):");
-                        curY += 21;
-                        GUI.color = new Color(1, 0.8f, 0.3f, 1);
-                        fpsCap = GUI.TextArea(new Rect(15, curY, guiWidth / 3, 21), fpsCap);
-                        if (!int.TryParse(fpsCap, out int validFPS) && fpsCap != String.Empty) { fpsCap = lastValidFPS; } else { if (fpsCap != String.Empty) { lastValidFPS = validFPS.ToString(); } }
-                        if (CreateButton((guiWidth / 3) + 20, curY, guiWidth - (guiWidth / 3) - 15, 21, "Set FPS Cap", new Color(0.2f, 0.2f, 0.2f, 1), new Color(0.4f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+
+                        if(lsCon.lang == "EN")
                         {
-                            if (int.TryParse(fpsCap, out int fps))
+                            CreateText(15, curY, 495, 300, 16, new Color(1, 0.8f, 0.3f, 1), "Keys:");
+                            curY += 21;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_limitFPS}</color> = Lock FPS ({(limitingFPS ? "<color=#9ef7a3>Enabled</color>" : "<color=#f27e7e>Disabled</color>")})");
+                            curY += 12;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_uncapFPS}</color> = Uncap FPS ({(fpsUncapped ? "<color=#9ef7a3>Enabled</color>" : "<color=#f27e7e>Disabled</color>")})");
+                            curY += 12;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_automash}</color> = Toggle AutoMash ({(DoAutoMash.Instance.autoMash ? "<color=#9ef7a3>Enabled</color>" : "<color=#f27e7e>Disabled</color>")})");
+                            curY += 12;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_toggleMenu}</color> = Toggle Menu");
+                            curY += 27;
+                            CreateText(15, curY, 495, 300, 16, new Color(1, 0.8f, 0.3f, 1), $"FPS Cap ({setting_FPScap}):");
+                            curY += 21;
+                            GUI.color = new Color(1, 0.8f, 0.3f, 1);
+                            fpsCap = GUI.TextArea(new Rect(15, curY, guiWidth / 3, 21), fpsCap);
+                            if (!int.TryParse(fpsCap, out int validFPS) && fpsCap != String.Empty) { fpsCap = lastValidFPS; } else { if (fpsCap != String.Empty) { lastValidFPS = validFPS.ToString(); } }
+                            if (CreateButton((guiWidth / 3) + 20, curY, guiWidth - (guiWidth / 3) - 15, 21, "Set FPS Cap", new Color(0.2f, 0.2f, 0.2f, 1), new Color(0.4f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
                             {
-                                if (fps < 30)
-                                    fps = 30;
+                                if (int.TryParse(fpsCap, out int fps))
+                                {
+                                    if (fps < 30)
+                                        fps = 30;
+                                }
+                                else { fps = 30; }
+
+                                setting_FPScap = fps;
+                                fpsCap = fps.ToString();
+                                SaveConfigSettings();
+                                fpsUncapped = false;
                             }
-                            else { fps = 30; }
+                            curY += 26;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 0.8f, 0.3f, 1), $"{(lsCon.IsConnectedToLivesplit ? "<color=green>Connected to LiveSplit</color>" : "<color=red>Not connected to LiveSplit</color>")}");
+                            curY += 18;
+                            if (CreateButton(15, curY, guiWidth - 10, 21, "Connect to LiveSplit", lsCon.IsConnectedToLivesplit ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), lsCon.IsConnectedToLivesplit ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                if (!lsCon.IsConnectedToLivesplit)
+                                    lsCon.ConnectToLiveSplit();
+                            }
+                            curY += 26;
+                            if (CreateButton(15, curY, guiWidth - 10, 21, "Settings...", new Color(0.2f, 0.2f, 0.2f, 1), new Color(0.4f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                guiID = 2;
 
-                            setting_FPScap = fps;
-                            fpsCap = fps.ToString();
-                            SaveConfigSettings();
-                            fpsUncapped = false;
+                                temp_setting_displayFPS = setting_displayFPS;
+                                temp_setting_automash = setting_automash;
+                                temp_setting_shouldCapFPS = setting_shouldCapFPS;
+
+                                string_displayFPS_size = setting_displayFPS_size.ToString();
+                                string_displayFPS_x = setting_displayFPS_x.ToString();
+                                string_displayFPS_y = setting_displayFPS_y.ToString();
+                            }
+                            curY += 26;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), "Developed by <color=purple>Loomeh</color> and <color=#F97CE4>Ninja Cookie</color>");
                         }
-                        curY += 26;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 0.8f, 0.3f, 1), $"{(lsCon.IsConnectedToLivesplit ? "<color=green>Connected to LiveSplit</color>" : "<color=red>Not connected to LiveSplit</color>")}");
-                        curY += 18;
-                        if (CreateButton(15, curY, guiWidth - 10, 21, "Connect to LiveSplit", lsCon.IsConnectedToLivesplit ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), lsCon.IsConnectedToLivesplit ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                        else if(lsCon.lang == "JPN")
                         {
-                            if (!lsCon.IsConnectedToLivesplit)
-                                lsCon.ConnectToLiveSplit();
-                        }
-                        curY += 26;
-                        if (CreateButton(15, curY, guiWidth - 10, 21, "Settings...", new Color(0.2f, 0.2f, 0.2f, 1), new Color(0.4f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
-                        {
-                            guiID = 2;
+                            CreateText(15, curY, 495, 300, 16, new Color(1, 0.8f, 0.3f, 1), "キー：");
+                            curY += 21;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_limitFPS}</color> = FPSを制限する ({(limitingFPS ? "<color=#9ef7a3>有効。</color>" : "<color=#f27e7e>無効。</color>")})");
+                            curY += 12;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_uncapFPS}</color> = FPSの制限を解除する ({(fpsUncapped ? "<color=#9ef7a3>有効。</color>" : "<color=#f27e7e>無効。</color>")})");
+                            curY += 12;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_automash}</color> = 自動マッシングの切り替え ({(DoAutoMash.Instance.autoMash ? "<color=#9ef7a3>有効。</color>" : "<color=#f27e7e>無効。</color>")})");
+                            curY += 12;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"<color=#64b1d9>{key_toggleMenu}</color> = メニューの切り替え");
+                            curY += 27;
+                            CreateText(15, curY, 495, 300, 16, new Color(1, 0.8f, 0.3f, 1), $"FPS制限 ({setting_FPScap}):");
+                            curY += 21;
+                            GUI.color = new Color(1, 0.8f, 0.3f, 1);
+                            fpsCap = GUI.TextArea(new Rect(15, curY, guiWidth / 3, 21), fpsCap);
+                            if (!int.TryParse(fpsCap, out int validFPS) && fpsCap != String.Empty) { fpsCap = lastValidFPS; } else { if (fpsCap != String.Empty) { lastValidFPS = validFPS.ToString(); } }
+                            if (CreateButton((guiWidth / 3) + 20, curY, guiWidth - (guiWidth / 3) - 15, 21, "FPS制限設定", new Color(0.2f, 0.2f, 0.2f, 1), new Color(0.4f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                if (int.TryParse(fpsCap, out int fps))
+                                {
+                                    if (fps < 30)
+                                        fps = 30;
+                                }
+                                else { fps = 30; }
 
-                            temp_setting_displayFPS         = setting_displayFPS;
-                            temp_setting_automash           = setting_automash;
-                            temp_setting_shouldCapFPS       = setting_shouldCapFPS;
+                                setting_FPScap = fps;
+                                fpsCap = fps.ToString();
+                                SaveConfigSettings();
+                                fpsUncapped = false;
+                            }
+                            curY += 26;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 0.8f, 0.3f, 1), $"{(lsCon.IsConnectedToLivesplit ? "<color=green>LiveSplitに接続済み</color>" : "<color=red>LiveSplitに未接続</color>")}");
+                            curY += 18;
+                            if (CreateButton(15, curY, guiWidth - 10, 21, "LiveSplitに接続", lsCon.IsConnectedToLivesplit ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), lsCon.IsConnectedToLivesplit ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                if (!lsCon.IsConnectedToLivesplit)
+                                    lsCon.ConnectToLiveSplit();
+                            }
+                            curY += 26;
+                            if (CreateButton(15, curY, guiWidth - 10, 21, "設定...", new Color(0.2f, 0.2f, 0.2f, 1), new Color(0.4f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                guiID = 2;
 
-                            string_displayFPS_size          = setting_displayFPS_size.ToString();
-                            string_displayFPS_x             = setting_displayFPS_x.ToString();
-                            string_displayFPS_y             = setting_displayFPS_y.ToString();
+                                temp_setting_displayFPS = setting_displayFPS;
+                                temp_setting_automash = setting_automash;
+                                temp_setting_shouldCapFPS = setting_shouldCapFPS;
+
+                                string_displayFPS_size = setting_displayFPS_size.ToString();
+                                string_displayFPS_x = setting_displayFPS_x.ToString();
+                                string_displayFPS_y = setting_displayFPS_y.ToString();
+                            }
+                            curY += 26;
+                            CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), "<color=purple>Loomeh</color>と<color=#F97CE4>Ninja Cookie</color>によって開発");
                         }
-                        curY += 26;
-                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), "Developed by <color=purple>Loomeh</color> and <color=#F97CE4>Ninja Cookie</color>");
                     }
-                    if (guiID == 2)
+                    if(lsCon.lang == "EN")
                     {
-                        CreateBox(10, 7, guiWidth, 290, new Color(0, 0, 0, 0.3f));
-                        int curY = 12;
-
-                        GUI.SetNextControlName("nofocus");
-                        GUI.TextArea(new Rect(-5, -5, 0, 0), "");
-
-                        GUI.color = Color.cyan;
-                        GUI.SetNextControlName("keystring_limitFPS");
-                        keystring_limitFPS = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_limitFPS);
-                        CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Lock FPS");
-
-                        if (GUI.GetNameOfFocusedControl() == "keystring_limitFPS")
+                        if (guiID == 2)
                         {
-                            if (Event.current.keyCode != KeyCode.None)
-                            {
-                                currentKey = Event.current.keyCode;
-                                GUI.FocusControl("nofocus");
-                            }
-                            else
-                            {
-                                System.Enum.TryParse(keystring_limitFPS, out currentKey);
-                            }
+                            CreateBox(10, 7, guiWidth, 290, new Color(0, 0, 0, 0.3f));
+                            int curY = 12;
 
-                            if (currentKey != KeyCode.None)
-                                keystring_limitFPS = currentKey.ToString();
-                        }
+                            GUI.SetNextControlName("nofocus");
+                            GUI.TextArea(new Rect(-5, -5, 0, 0), "");
 
-                        curY += 26;
+                            GUI.color = Color.cyan;
+                            GUI.SetNextControlName("keystring_limitFPS");
+                            keystring_limitFPS = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_limitFPS);
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Lock FPS");
 
-                        GUI.color = Color.cyan;
-                        GUI.SetNextControlName("keystring_uncapFPS");
-                        keystring_uncapFPS = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_uncapFPS);
-                        CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Uncap FPS");
-
-                        if (GUI.GetNameOfFocusedControl() == "keystring_uncapFPS")
-                        {
-                            if (Event.current.keyCode != KeyCode.None)
+                            if (GUI.GetNameOfFocusedControl() == "keystring_limitFPS")
                             {
-                                currentKey = Event.current.keyCode;
-                                GUI.FocusControl("nofocus");
-                            }
-                            else
-                            {
-                                System.Enum.TryParse(keystring_uncapFPS, out currentKey);
+                                if (Event.current.keyCode != KeyCode.None)
+                                {
+                                    currentKey = Event.current.keyCode;
+                                    GUI.FocusControl("nofocus");
+                                }
+                                else
+                                {
+                                    System.Enum.TryParse(keystring_limitFPS, out currentKey);
+                                }
+
+                                if (currentKey != KeyCode.None)
+                                    keystring_limitFPS = currentKey.ToString();
                             }
 
-                            if (currentKey != KeyCode.None)
-                                keystring_uncapFPS = currentKey.ToString();
-                        }
+                            curY += 26;
 
-                        curY += 26;
+                            GUI.color = Color.cyan;
+                            GUI.SetNextControlName("keystring_uncapFPS");
+                            keystring_uncapFPS = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_uncapFPS);
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Uncap FPS");
 
-                        GUI.color = Color.cyan;
-                        GUI.SetNextControlName("keystring_automash");
-                        keystring_automash = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_automash);
-                        CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Toggle AutoMash");
-
-                        if (GUI.GetNameOfFocusedControl() == "keystring_automash")
-                        {
-                            if (Event.current.keyCode != KeyCode.None)
+                            if (GUI.GetNameOfFocusedControl() == "keystring_uncapFPS")
                             {
-                                currentKey = Event.current.keyCode;
-                                GUI.FocusControl("nofocus");
-                            }
-                            else
-                            {
-                                System.Enum.TryParse(keystring_automash, out currentKey);
-                            }
+                                if (Event.current.keyCode != KeyCode.None)
+                                {
+                                    currentKey = Event.current.keyCode;
+                                    GUI.FocusControl("nofocus");
+                                }
+                                else
+                                {
+                                    System.Enum.TryParse(keystring_uncapFPS, out currentKey);
+                                }
 
-                            if (currentKey != KeyCode.None)
-                                keystring_automash = currentKey.ToString();
-                        }
-
-                        curY += 26;
-
-                        GUI.color = Color.cyan;
-                        GUI.SetNextControlName("keystring_toggleMenu");
-                        keystring_toggleMenu = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_toggleMenu);
-                        CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Toggle Menu");
-
-                        if (GUI.GetNameOfFocusedControl() == "keystring_toggleMenu")
-                        {
-                            if (Event.current.keyCode != KeyCode.None)
-                            {
-                                currentKey = Event.current.keyCode;
-                                GUI.FocusControl("nofocus");
-                            }
-                            else
-                            {
-                                System.Enum.TryParse(keystring_toggleMenu, out currentKey);
+                                if (currentKey != KeyCode.None)
+                                    keystring_uncapFPS = currentKey.ToString();
                             }
 
-                            if (currentKey != KeyCode.None)
-                                keystring_toggleMenu = currentKey.ToString();
+                            curY += 26;
+
+                            GUI.color = Color.cyan;
+                            GUI.SetNextControlName("keystring_automash");
+                            keystring_automash = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_automash);
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Toggle AutoMash");
+
+                            if (GUI.GetNameOfFocusedControl() == "keystring_automash")
+                            {
+                                if (Event.current.keyCode != KeyCode.None)
+                                {
+                                    currentKey = Event.current.keyCode;
+                                    GUI.FocusControl("nofocus");
+                                }
+                                else
+                                {
+                                    System.Enum.TryParse(keystring_automash, out currentKey);
+                                }
+
+                                if (currentKey != KeyCode.None)
+                                    keystring_automash = currentKey.ToString();
+                            }
+
+                            curY += 26;
+
+                            GUI.color = Color.cyan;
+                            GUI.SetNextControlName("keystring_toggleMenu");
+                            keystring_toggleMenu = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_toggleMenu);
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Toggle Menu");
+
+                            if (GUI.GetNameOfFocusedControl() == "keystring_toggleMenu")
+                            {
+                                if (Event.current.keyCode != KeyCode.None)
+                                {
+                                    currentKey = Event.current.keyCode;
+                                    GUI.FocusControl("nofocus");
+                                }
+                                else
+                                {
+                                    System.Enum.TryParse(keystring_toggleMenu, out currentKey);
+                                }
+
+                                if (currentKey != KeyCode.None)
+                                    keystring_toggleMenu = currentKey.ToString();
+                            }
+
+                            curY += 26;
+                            if (CreateButton(15, curY, 80, 21, $"{temp_setting_displayFPS}", temp_setting_displayFPS ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), temp_setting_displayFPS ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                temp_setting_displayFPS = !temp_setting_displayFPS;
+                            }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Display FPS");
+
+                            curY += 26;
+                            if (CreateButton(15, curY, 80, 21, $"{temp_setting_automash}", temp_setting_automash ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), temp_setting_automash ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                temp_setting_automash = !temp_setting_automash;
+                            }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = AutoMash Starts Enabled");
+
+                            curY += 26;
+                            if (CreateButton(15, curY, 80, 21, $"{temp_setting_shouldCapFPS}", temp_setting_shouldCapFPS ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), temp_setting_shouldCapFPS ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                temp_setting_shouldCapFPS = !temp_setting_shouldCapFPS;
+                            }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Start FPS Capped");
+
+                            curY += 26;
+                            string_displayFPS_size = GUI.TextArea(new Rect(15, curY, 80, 21), string_displayFPS_size);
+                            if (!int.TryParse(string_displayFPS_size, out int FPSsize)) { if (string_displayFPS_size != String.Empty) { string_displayFPS_size = setting_displayFPS_size.ToString(); } }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Display FPS Size");
+
+                            curY += 26;
+                            string_displayFPS_x = GUI.TextArea(new Rect(15, curY, 80, 21), string_displayFPS_x);
+                            if (!int.TryParse(string_displayFPS_x, out int FPSx)) { if (string_displayFPS_x != String.Empty) { string_displayFPS_x = setting_displayFPS_x.ToString(); } }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Display FPS x");
+
+                            curY += 26;
+                            string_displayFPS_y = GUI.TextArea(new Rect(15, curY, 80, 21), string_displayFPS_y);
+                            if (!int.TryParse(string_displayFPS_y, out int FPSy)) { if (string_displayFPS_y != String.Empty) { string_displayFPS_y = setting_displayFPS_y.ToString(); } }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Display FPS y");
+
+                            curY += 26;
+                            if (CreateButton(15, curY, (guiWidth / 2) - 7, 21, "Save...", new Color(0.2f, 0.3f, 0.2f, 1), new Color(0.4f, 0.5f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                SaveConfigSettings();
+                                guiID = 1;
+                            }
+                            if (CreateButton((guiWidth / 2) + 12, curY, (guiWidth / 2) - 7, 21, "Cancel", new Color(0.3f, 0.2f, 0.2f, 1), new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                guiID = 1;
+                            }
                         }
-
-                        curY += 26;
-                        if (CreateButton(15, curY, 80, 21, $"{temp_setting_displayFPS}", temp_setting_displayFPS ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), temp_setting_displayFPS ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                    }
+                    else if(lsCon.lang == "JPN")
+                    {
+                        if (guiID == 2)
                         {
-                            temp_setting_displayFPS = !temp_setting_displayFPS;
-                        }
-                        CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Display FPS");
+                            CreateBox(10, 7, guiWidth, 290, new Color(0, 0, 0, 0.3f));
+                            int curY = 12;
 
-                        curY += 26;
-                        if (CreateButton(15, curY, 80, 21, $"{temp_setting_automash}", temp_setting_automash ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), temp_setting_automash ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
-                        {
-                            temp_setting_automash = !temp_setting_automash;
-                        }
-                        CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = AutoMash Starts Enabled");
+                            GUI.SetNextControlName("nofocus");
+                            GUI.TextArea(new Rect(-5, -5, 0, 0), "");
 
-                        curY += 26;
-                        if (CreateButton(15, curY, 80, 21, $"{temp_setting_shouldCapFPS}", temp_setting_shouldCapFPS ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), temp_setting_shouldCapFPS ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
-                        {
-                            temp_setting_shouldCapFPS = !temp_setting_shouldCapFPS;
-                        }
-                        CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Start FPS Capped");
+                            GUI.color = Color.cyan;
+                            GUI.SetNextControlName("keystring_limitFPS");
+                            keystring_limitFPS = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_limitFPS);
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = FPSを制限する");
 
-                        curY += 26;
-                        string_displayFPS_size = GUI.TextArea(new Rect(15, curY, 80, 21), string_displayFPS_size);
-                        if (!int.TryParse(string_displayFPS_size, out int FPSsize)) { if (string_displayFPS_size != String.Empty) { string_displayFPS_size = setting_displayFPS_size.ToString(); }}
-                        CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Display FPS Size");
+                            if (GUI.GetNameOfFocusedControl() == "keystring_limitFPS")
+                            {
+                                if (Event.current.keyCode != KeyCode.None)
+                                {
+                                    currentKey = Event.current.keyCode;
+                                    GUI.FocusControl("nofocus");
+                                }
+                                else
+                                {
+                                    System.Enum.TryParse(keystring_limitFPS, out currentKey);
+                                }
 
-                        curY += 26;
-                        string_displayFPS_x = GUI.TextArea(new Rect(15, curY, 80, 21), string_displayFPS_x);
-                        if (!int.TryParse(string_displayFPS_x, out int FPSx)) { if (string_displayFPS_x != String.Empty) { string_displayFPS_x = setting_displayFPS_x.ToString(); } }
-                        CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Display FPS x");
+                                if (currentKey != KeyCode.None)
+                                    keystring_limitFPS = currentKey.ToString();
+                            }
 
-                        curY += 26;
-                        string_displayFPS_y = GUI.TextArea(new Rect(15, curY, 80, 21), string_displayFPS_y);
-                        if (!int.TryParse(string_displayFPS_y, out int FPSy)) { if (string_displayFPS_y != String.Empty) { string_displayFPS_y = setting_displayFPS_y.ToString(); } }
-                        CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = Display FPS y");
+                            curY += 26;
 
-                        curY += 26;
-                        if (CreateButton(15, curY, (guiWidth / 2) - 7, 21, "Save...", new Color(0.2f, 0.3f, 0.2f, 1), new Color(0.4f, 0.5f, 0.4f, 1), new Color(1, 1, 1, 1)))
-                        {
-                            SaveConfigSettings();
-                            guiID = 1;
-                        }
-                        if (CreateButton((guiWidth / 2) + 12, curY, (guiWidth / 2) - 7, 21, "Cancel", new Color(0.3f, 0.2f, 0.2f, 1), new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
-                        {
-                            guiID = 1;
+                            GUI.color = Color.cyan;
+                            GUI.SetNextControlName("keystring_uncapFPS");
+                            keystring_uncapFPS = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_uncapFPS);
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = FPSの制限を解除する");
+
+                            if (GUI.GetNameOfFocusedControl() == "keystring_uncapFPS")
+                            {
+                                if (Event.current.keyCode != KeyCode.None)
+                                {
+                                    currentKey = Event.current.keyCode;
+                                    GUI.FocusControl("nofocus");
+                                }
+                                else
+                                {
+                                    System.Enum.TryParse(keystring_uncapFPS, out currentKey);
+                                }
+
+                                if (currentKey != KeyCode.None)
+                                    keystring_uncapFPS = currentKey.ToString();
+                            }
+
+                            curY += 26;
+
+                            GUI.color = Color.cyan;
+                            GUI.SetNextControlName("keystring_automash");
+                            keystring_automash = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_automash);
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = 自動マッシングの切り替え");
+
+                            if (GUI.GetNameOfFocusedControl() == "keystring_automash")
+                            {
+                                if (Event.current.keyCode != KeyCode.None)
+                                {
+                                    currentKey = Event.current.keyCode;
+                                    GUI.FocusControl("nofocus");
+                                }
+                                else
+                                {
+                                    System.Enum.TryParse(keystring_automash, out currentKey);
+                                }
+
+                                if (currentKey != KeyCode.None)
+                                    keystring_automash = currentKey.ToString();
+                            }
+
+                            curY += 26;
+
+                            GUI.color = Color.cyan;
+                            GUI.SetNextControlName("keystring_toggleMenu");
+                            keystring_toggleMenu = GUI.TextArea(new Rect(15, curY, 80, 21), keystring_toggleMenu);
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = メニューの切り替え");
+
+                            if (GUI.GetNameOfFocusedControl() == "keystring_toggleMenu")
+                            {
+                                if (Event.current.keyCode != KeyCode.None)
+                                {
+                                    currentKey = Event.current.keyCode;
+                                    GUI.FocusControl("nofocus");
+                                }
+                                else
+                                {
+                                    System.Enum.TryParse(keystring_toggleMenu, out currentKey);
+                                }
+
+                                if (currentKey != KeyCode.None)
+                                    keystring_toggleMenu = currentKey.ToString();
+                            }
+
+                            curY += 26;
+                            if (CreateButton(15, curY, 80, 21, $"{temp_setting_displayFPS}", temp_setting_displayFPS ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), temp_setting_displayFPS ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                temp_setting_displayFPS = !temp_setting_displayFPS;
+                            }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = FPSを表示");
+
+                            curY += 26;
+                            if (CreateButton(15, curY, 80, 21, $"{temp_setting_automash}", temp_setting_automash ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), temp_setting_automash ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                temp_setting_automash = !temp_setting_automash;
+                            }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = 自動マッシングは有効で開始します");
+
+                            curY += 26;
+                            if (CreateButton(15, curY, 80, 21, $"{temp_setting_shouldCapFPS}", temp_setting_shouldCapFPS ? new Color(0.2f, 0.3f, 0.2f, 1) : new Color(0.3f, 0.2f, 0.2f, 1), temp_setting_shouldCapFPS ? new Color(0.4f, 0.5f, 0.4f, 1) : new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                temp_setting_shouldCapFPS = !temp_setting_shouldCapFPS;
+                            }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = FPSは制限されて開始します");
+
+                            curY += 26;
+                            string_displayFPS_size = GUI.TextArea(new Rect(15, curY, 80, 21), string_displayFPS_size);
+                            if (!int.TryParse(string_displayFPS_size, out int FPSsize)) { if (string_displayFPS_size != String.Empty) { string_displayFPS_size = setting_displayFPS_size.ToString(); } }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = FPSサイズを表示");
+
+                            curY += 26;
+                            string_displayFPS_x = GUI.TextArea(new Rect(15, curY, 80, 21), string_displayFPS_x);
+                            if (!int.TryParse(string_displayFPS_x, out int FPSx)) { if (string_displayFPS_x != String.Empty) { string_displayFPS_x = setting_displayFPS_x.ToString(); } }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = FPSを x で表示");
+
+                            curY += 26;
+                            string_displayFPS_y = GUI.TextArea(new Rect(15, curY, 80, 21), string_displayFPS_y);
+                            if (!int.TryParse(string_displayFPS_y, out int FPSy)) { if (string_displayFPS_y != String.Empty) { string_displayFPS_y = setting_displayFPS_y.ToString(); } }
+                            CreateText(95, curY, 495, 300, 12, new Color(1, 1, 1, 1), " = FPSを y で表示");
+
+                            curY += 26;
+                            if (CreateButton(15, curY, (guiWidth / 2) - 7, 21, "保存...", new Color(0.2f, 0.3f, 0.2f, 1), new Color(0.4f, 0.5f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                SaveConfigSettings();
+                                guiID = 1;
+                            }
+                            if (CreateButton((guiWidth / 2) + 12, curY, (guiWidth / 2) - 7, 21, "キャンセル", new Color(0.3f, 0.2f, 0.2f, 1), new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                            {
+                                guiID = 1;
+                            }
                         }
                     }
                 }
