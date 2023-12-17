@@ -67,17 +67,12 @@ namespace SpeedrunUtils
         private TcpClient Client = null;
         private NetworkStream Stream = null;
 
-        public string lang = "";
 
         public void Awake()
         {
             if(!Directory.Exists(ConfigPath))
                 Directory.CreateDirectory(ConfigPath);
 
-            if (!File.Exists(langPath))
-                File.WriteAllText(langPath, "EN");
-            else
-                lang = File.ReadAllText(langPath);
 
             setIpAddr();
         }

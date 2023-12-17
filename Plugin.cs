@@ -14,6 +14,7 @@ namespace SpeedrunUtils
             _tools = new();
 
             _mod = new();
+            _mod.AddComponent<Text>();
             _mod.AddComponent<LiveSplitControl>();
             _mod.AddComponent<DoAutoMash>();
             _mod.AddComponent<NinjaConfigUI>();
