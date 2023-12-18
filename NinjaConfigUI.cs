@@ -279,7 +279,7 @@ namespace SpeedrunUtils
         private int guiID = 1;
 
         private const int guiWidth = 300;
-        private const int guiHeight = 233;
+        private const int guiHeight = 239;
 
         private String fpsCap = String.Empty;
         private String lastValidFPS = String.Empty;

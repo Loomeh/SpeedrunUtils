@@ -52,11 +52,23 @@ namespace SpeedrunUtils
         {
             if (!File.Exists(langPath))
             {
-                File.WriteAllText(langPath, "Language selector\nSupported languages: EN,JPN\n---------------------------\n");
-                if (Application.systemLanguage == SystemLanguage.English)
-                    File.AppendAllText(langPath, "EN");
-                else if (Application.systemLanguage == SystemLanguage.Japanese)
-                    File.AppendAllText(langPath, "JPN");
+                File.WriteAllText(langPath, "Language selector\nSupported languages: EN,JPN,IT\n---------------------------\n");
+
+                switch (Application.systemLanguage)
+                {
+                    case SystemLanguage.English:
+                        File.AppendAllText(langPath, "EN");
+                        break;
+                    case SystemLanguage.Japanese:
+                        File.AppendAllText(langPath, "JPN");
+                        break;
+                    case SystemLanguage.Italian:
+                        File.AppendAllText(langPath, "IT");
+                        break;
+                    default:
+                        File.AppendAllText(langPath, "EN");
+                        break;
+                }
             }
             else
             {
@@ -118,6 +130,33 @@ namespace SpeedrunUtils
                 cancel = "キャンセル";
                 enabledTXT = "有効。";
                 DisabledTXT = "無効。";
+            }
+            else if (lang == "IT") //by Erisrine
+            {
+                amEnabledHint = "AutoMash Abilitato";
+                amDisabledHint = "AutoMash Disabilitato";
+                keys = "Tasti:";
+                lockFps = "Blocca FPS";
+                unlockFps = "Sblocca FPS";
+                toggleAM = "Abilita Automash";
+                toggleMenu = "Abilita Menu";
+                fpsCap = "Limite FPS";
+                setFpsCap = "Imposta Limite FPS";
+                connectToLS = "Connetti a LiveSplit";
+                connectedToLS = "Connesso a LiveSplit";
+                notConnectedToLS = "Non connesso a LiveSplit";
+                settings = "Impostazioni...";
+                credits = "Sviluppato da <color=purple>Loomeh</color> e <color=#F97CE4>Ninja Cookie</color>\nTradotto da Erisrine";
+                displayFPS = "Mostra FPS";
+                amStartsEnabled = "AutoMash Inizia Abilitato";
+                startFPSCapped = "FPS Iniziano Limitati";
+                displayFpsSize = "Dimensione Display FPS";
+                displayFpsX = "Display FPS x";
+                displayFpsY = "Display FPS y";
+                save = "Salva...";
+                cancel = "Cancella";
+                enabledTXT = "Abilita";
+                DisabledTXT = "Disabilita";
             }
 
             initialised = true;
