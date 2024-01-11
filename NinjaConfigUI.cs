@@ -57,15 +57,8 @@ namespace SpeedrunUtils
 
             if (Directory.Exists(configFolder) && !File.Exists(splitsPath))
             {
-                await Task.Run(() =>
-                {
-                    lsCon.isDownloading = true;
-                    using (var client = new WebClient())
-                    {
-                        client.DownloadFile("https://raw.githubusercontent.com/Loomeh/BRCAutosplitter/main/splits.txt", splitsPath);
-                    }
-                    lsCon.isDownloading = false;
-                });
+                string splitsText = "-- Any%\r\nPrologue End,true\r\nEarly Mataan (Splits when you enter Millenium Square),false\r\nVersum Hill Start,true\r\nDream Sequence 1 Start,true\r\nChapter 1 End,true\r\nBrink Terminal Start,true\r\nDream Sequence 2 Start,true\r\nChapter 2 End,true\r\nMillenium Mall Start,true\r\nDream Sequence 3 Start,true\r\nChapter 3 End,true\r\nFlesh Prince Versum End,false\r\nFlesh Prince Millenium End,false\r\nFlesh Prince Brink End,false\r\nPyramid Island Start,false\r\nDream Sequence 4 Start,true\r\nChapter 4 End,true\r\nFinal Boss Defeated,true";
+                File.WriteAllText(splitsPath, splitsText);
             }
                 
 
