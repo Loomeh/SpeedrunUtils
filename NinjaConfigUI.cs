@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
 namespace SpeedrunUtils
@@ -45,6 +46,7 @@ namespace SpeedrunUtils
         private bool singleSetup = false;
         private bool initStartup = true;
 
+
         private async void Start()
         {
             if (!Directory.Exists(configFolder))
@@ -57,12 +59,15 @@ namespace SpeedrunUtils
             {
                 await Task.Run(() =>
                 {
+                    lsCon.isDownloading = true;
                     using (var client = new WebClient())
                     {
                         client.DownloadFile("https://raw.githubusercontent.com/Loomeh/BRCAutosplitter/main/splits.txt", splitsPath);
                     }
+                    lsCon.isDownloading = false;
                 });
             }
+                
 
             if (File.Exists(settingsPath))
                 SetSettings();

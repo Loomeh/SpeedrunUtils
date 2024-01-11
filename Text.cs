@@ -69,6 +69,7 @@ namespace SpeedrunUtils
                         File.AppendAllText(langPath, "EN");
                         break;
                 }
+                lang = File.ReadLines(langPath).Skip(3).Take(1).First();
             }
             else
             {

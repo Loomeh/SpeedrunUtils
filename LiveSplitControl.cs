@@ -67,6 +67,8 @@ namespace SpeedrunUtils
         private TcpClient Client = null;
         private NetworkStream Stream = null;
 
+        public bool isDownloading = false;
+
 
         public void Awake()
         {
@@ -337,7 +339,7 @@ namespace SpeedrunUtils
                 UpdateAutosplitter();
             }
 
-            if(File.Exists(SplitsPath) && SplitArray == null)
+            if (File.Exists(SplitsPath) && SplitArray == null && !isDownloading)
             {
                 string[] lines = File.ReadAllLines(SplitsPath);
                 List<bool> tempList = new List<bool>();
