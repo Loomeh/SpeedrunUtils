@@ -18,7 +18,6 @@ namespace SpeedrunUtils
             _mod.AddComponent<LiveSplitControl>();
             _mod.AddComponent<DoAutoMash>();
             _mod.AddComponent<NinjaConfigUI>();
-            _mod.AddComponent<ReptileDownpatcher>();
             _mod.AddComponent<Tools>();
             DontDestroyOnLoad(_mod);
         }

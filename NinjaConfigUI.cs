@@ -394,6 +394,8 @@ namespace SpeedrunUtils
                         }
                         curY += 26;
                         CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"{text.credits}");
+                        curY += 30;
+                        CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"SpeedrunUtils v{PluginInfo.PLUGIN_VERSION}");
                     }
                     if (guiID == 2)
                     {
