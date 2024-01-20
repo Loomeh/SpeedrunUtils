@@ -37,6 +37,8 @@ namespace SpeedrunUtils
         public string cancel = "";
         public string enabledTXT = "";
         public string DisabledTXT = "";
+        public string configureSplits = "";
+        public string savesplits = "";
 
         public bool initialised = false;
 
@@ -104,6 +106,8 @@ namespace SpeedrunUtils
                 cancel = "Cancel";
                 enabledTXT = "Enabled";
                 DisabledTXT = "Disabled";
+                configureSplits = "Configure Splits";
+                savesplits = "Save";
             }
             else if (lang == "JPN")
             {

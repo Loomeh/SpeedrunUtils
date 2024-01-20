@@ -4,20 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UIElements;
 
 namespace SpeedrunUtils
 {
     internal class NinjaConfigUI : MonoBehaviour
     {
-        private static string configFolder = $@"{Paths.ConfigPath}\SpeedrunUtils\";
+        private static string configFolder = Path.Combine(Paths.ConfigPath, "SpeedrunUtils");
 
         private readonly string splitsPath = Path.Combine(configFolder, "splits.txt");
         private static string settingsPath = Path.Combine(configFolder, "settings.txt");
@@ -46,21 +41,18 @@ namespace SpeedrunUtils
         private bool singleSetup = false;
         private bool initStartup = true;
 
+        private bool[] tempArray;
 
-        private async void Start()
+
+        private async Task Start()
         {
-            if (!Directory.Exists(configFolder))
-                await Task.Run(() => { Directory.CreateDirectory(configFolder); });
+            EnsureConfigFolderExists();
 
-            if (Directory.Exists(configFolder) && !File.Exists(settingsPath))
+            if (!File.Exists(settingsPath))
                 await WriteSettings();
 
-            if (Directory.Exists(configFolder) && !File.Exists(splitsPath))
-            {
-                string splitsText = "-- Any%\r\nPrologue End,true\r\nEarly Mataan (Splits when you enter Millenium Square),false\r\nVersum Hill Start,true\r\nDream Sequence 1 Start,true\r\nChapter 1 End,true\r\nBrink Terminal Start,true\r\nDream Sequence 2 Start,true\r\nChapter 2 End,true\r\nMillenium Mall Start,true\r\nDream Sequence 3 Start,true\r\nChapter 3 End,true\r\nFlesh Prince Versum End,false\r\nFlesh Prince Millenium End,false\r\nFlesh Prince Brink End,false\r\nPyramid Island Start,false\r\nDream Sequence 4 Start,true\r\nChapter 4 End,true\r\nFinal Boss Defeated,true";
-                File.WriteAllText(splitsPath, splitsText);
-            }
-                
+            if (!File.Exists(splitsPath))
+                WriteDefaultSplits();
 
             if (File.Exists(settingsPath))
                 SetSettings();
@@ -73,6 +65,19 @@ namespace SpeedrunUtils
 
             setupEnded = true;
         }
+
+        private void EnsureConfigFolderExists()
+        {
+            if (!Directory.Exists(configFolder))
+                Directory.CreateDirectory(configFolder);
+        }
+
+        private void WriteDefaultSplits()
+        {
+            string splitsText = "-- Any%\r\nPrologue End,true\r\nEarly Mataan (Splits when you enter Millenium Square),false\r\nVersum Hill Start,true\r\nDream Sequence 1 Start,true\r\nChapter 1 End,true\r\nBrink Terminal Start,true\r\nDream Sequence 2 Start,true\r\nChapter 2 End,true\r\nMillenium Mall Start,true\r\nDream Sequence 3 Start,true\r\nChapter 3 End,true\r\nFlesh Prince Versum End,false\r\nFlesh Prince Millenium End,false\r\nFlesh Prince Brink End,false\r\nPyramid Island Start,false\r\nDream Sequence 4 Start,true\r\nChapter 4 End,true\r\nFinal Boss Defeated,true";
+            File.WriteAllText(splitsPath, splitsText);
+        }
+
 
         private async Task WriteSettings()
         {
@@ -211,11 +216,11 @@ namespace SpeedrunUtils
             {
                 setupEnded = false;
                 await Task.Run(() => { File.Delete(settingsPath); });
-                Start();
+                await Start();
             }
         }
 
-        private void Update()
+        public void Update()
         {
             if (setupEnded)
             {
@@ -393,6 +398,11 @@ namespace SpeedrunUtils
                             string_displayFPS_y = setting_displayFPS_y.ToString();
                         }
                         curY += 26;
+                        if (CreateButton(15, curY, guiWidth - 10, 21, $"{text.configureSplits}", new Color(0.2f, 0.2f, 0.2f, 1), new Color(0.4f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                        {
+                            guiID = 3;
+                        }
+                        curY += 26;
                         CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"{text.credits}");
                         curY += 30;
                         CreateText(15, curY, 495, 300, 12, new Color(1, 1, 1, 1), $"SpeedrunUtils v{PluginInfo.PLUGIN_VERSION}");
@@ -542,7 +552,70 @@ namespace SpeedrunUtils
                             guiID = 1;
                         }
                     }
+                    if (guiID == 3)
+                    {
+                        CreateBox(10, 7, guiWidth, 450, new Color(0, 0, 0, 0.3f));
+                        int curY = 12;
+
+                        GUI.SetNextControlName("nofocus");
+                        GUI.TextArea(new Rect(-5, -5, 0, 0), "");
+
+                        GUI.color = Color.white;
+
+                        tempArray = lsCon.SplitArray;
+
+                        tempArray[0] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[0], "Prologue");
+                        curY += 20;
+                        tempArray[1] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[1], "Early Mataan");
+                        curY += 20;
+                        tempArray[2] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[2], "Versum Hill Start");
+                        curY += 20;
+                        tempArray[3] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[3], "Dream Sequence 1 Start");
+                        curY += 20;
+                        tempArray[4] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[4], "Chapter 1 End");
+                        curY += 20;
+                        tempArray[5] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[5], "Brink Terminal Start");
+                        curY += 20;
+                        tempArray[6] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[6], "Dream Sequence 2 Start");
+                        curY += 20;
+                        tempArray[7] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[7], "Chapter 2 End");
+                        curY += 20;
+                        tempArray[8] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[8], "Millenium Mall Start");
+                        curY += 20;
+                        tempArray[9] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[9], "Dream Sequence 3 Start");
+                        curY += 20;
+                        tempArray[10] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[10], "Chapter 3 End");
+                        curY += 20;
+                        tempArray[11] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[11], "Flesh Prince Versum End");
+                        curY += 20;
+                        tempArray[12] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[12], "Flesh Prince Millenium End");
+                        curY += 20;
+                        tempArray[13] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[13], "Flesh Prince Brink End");
+                        curY += 20;
+                        tempArray[14] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[14], "Pyramid Island Start");
+                        curY += 20;
+                        tempArray[15] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[15], "Dream Sequence 4 Start");
+                        curY += 20;
+                        tempArray[16] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[16], "Chapter 4 End");
+                        curY += 20;
+                        tempArray[17] = GUI.Toggle(new Rect(15, curY + 26, 200, 21), tempArray[17], "Final Boss Defeated");
+
+                        curY += 70;
+
+                        if (CreateButton((guiWidth / 2) - 135, curY, (guiWidth / 2) - 7, 21, $"{text.savesplits}", new Color(0.4f, 0.5f, 0.4f, 1), new Color(0.4f, 0.5f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                        {
+                            lsCon.SplitArray = tempArray;
+
+                            lsCon.ReplaceBoolArrayInFile(splitsPath, tempArray);
+                        }
+
+                        if (CreateButton((guiWidth / 2) + 12, curY, (guiWidth / 2) - 7, 21, $"{text.cancel}", new Color(0.3f, 0.2f, 0.2f, 1), new Color(0.5f, 0.4f, 0.4f, 1), new Color(1, 1, 1, 1)))
+                        {
+                            guiID = 1;
+                        }
+                    }
                 }
+                
                 else if (guiID != 1)
                 {
                     guiID = 1;

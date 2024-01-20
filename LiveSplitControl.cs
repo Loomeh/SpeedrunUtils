@@ -57,7 +57,7 @@ namespace SpeedrunUtils
         public bool IsConnectedToLivesplit = false;
         public bool newGame;
 
-        private bool[] SplitArray;
+        public bool[] SplitArray;
 
         private string IpAddress = "";
         private int Port = 16834;
@@ -66,8 +66,6 @@ namespace SpeedrunUtils
 
         private TcpClient Client = null;
         private NetworkStream Stream = null;
-
-        public bool isDownloading = false;
 
 
         public void Awake()
@@ -339,7 +337,7 @@ namespace SpeedrunUtils
                 UpdateAutosplitter();
             }
 
-            if (File.Exists(SplitsPath) && SplitArray == null && !isDownloading)
+            if (File.Exists(SplitsPath) && SplitArray == null)
             {
                 string[] lines = File.ReadAllLines(SplitsPath);
                 List<bool> tempList = new List<bool>();
@@ -359,6 +357,34 @@ namespace SpeedrunUtils
                 SplitArray = tempList.ToArray();
             }
         }
+
+        public void ReplaceBoolArrayInFile(string filePath, bool[] newBoolArray)
+        {
+            if (File.Exists(filePath))
+            {
+                string[] lines = File.ReadAllLines(filePath);
+                List<string> modifiedLines = new List<string>();
+
+                for (int i = 1; i < lines.Length; i++) // Start from index 1 to skip the first line
+                {
+                    if (!string.IsNullOrWhiteSpace(lines[i]) && lines[i].Contains(','))
+                    {
+                        string[] parts = lines[i].Split(',');
+                        if (parts.Length >= 2)
+                        {
+                            // Replace the existing bool value with the new one
+                            parts[1] = newBoolArray[i - 1].ToString();
+                            modifiedLines.Add(string.Join(",", parts));
+                        }
+                    }
+                }
+
+                // Write the modified lines back to the file, including the first line
+                File.WriteAllLines(filePath, new[] { lines[0] }.Concat(modifiedLines).ToArray());
+            }
+        }
+
+
 
         public void OnApplicationQuit()
         {
