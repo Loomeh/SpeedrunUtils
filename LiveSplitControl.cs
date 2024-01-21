@@ -18,17 +18,8 @@ namespace SpeedrunUtils
 {
     public class LiveSplitControl : MonoBehaviour
     {
-        public static LiveSplitControl Instance;
-
-        public LiveSplitControl()
-        {
-            Instance = this;
-        }
-
-        private static readonly string ConfigPath = Paths.ConfigPath + @"\SpeedrunUtils\";
+        private static readonly string ConfigPath = Paths.ConfigPath + "\\" + "SpeedrunUtils\\";
         private readonly string SplitsPath = Path.Combine(ConfigPath, "splits.txt");
-        private readonly string ipPath = Path.Combine(ConfigPath, "IP.txt");
-        private readonly string langPath = Path.Combine(ConfigPath, "LANG.txt");
 
         public bool debug = false;
 
@@ -59,7 +50,7 @@ namespace SpeedrunUtils
 
         public bool[] SplitArray;
 
-        private string IpAddress = "";
+        private string IpAddress = "127.0.0.1";
         private int Port = 16834;
 
         private bool HasSentPauseCommand = false;
@@ -67,32 +58,13 @@ namespace SpeedrunUtils
         private TcpClient Client = null;
         private NetworkStream Stream = null;
 
-
         public void Awake()
         {
             if(!Directory.Exists(ConfigPath))
                 Directory.CreateDirectory(ConfigPath);
-
-
-            setIpAddr();
         }
 
-        public void setIpAddr()
-        {
-            if (!File.Exists(ipPath))
-            {
-                File.WriteAllText(ipPath, "127.0.0.1");
-            }
 
-            if(File.ReadAllText(ipPath).IsNullOrWhiteSpace())
-            {
-                File.WriteAllText(ipPath, "127.0.0.1");
-            }
-            else
-            {
-                IpAddress = File.ReadAllText(ipPath);
-            }
-        }
 
         public void ConnectToLiveSplit()
         {
@@ -111,7 +83,6 @@ namespace SpeedrunUtils
                     int bytes = Stream.Read(data, 0, data.Length);
                     responseData = Encoding.ASCII.GetString(data, 0, bytes);
 
-                    // According to recent commits to the LiveSplit Server repo this actually does nothing but we'll keep it in just incase :)
                     if (responseData != String.Empty)
                     {
                         Stream.Write(Encoding.UTF8.GetBytes("initgametime\r\n"), 0, Encoding.UTF8.GetBytes("initgametime\r\n").Length);
@@ -137,8 +108,6 @@ namespace SpeedrunUtils
             {
                 if (BaseModule == null) { BaseModule = Core.Instance.BaseModule; }
                 if (worldHandler == null) { worldHandler = WorldHandler.instance; }
-
-                
 
                 if (BaseModule != null)
                 {
@@ -176,7 +145,6 @@ namespace SpeedrunUtils
                 else if (!inCutscene) { sequenceName = ""; }
 
                 if (finalBossHit && currentStage != Stage.osaka) { finalBossHit = false; }
-
 
                 if (finalBossGO == null && currentStage == Stage.osaka && (objective == Story.ObjectiveID.BeatOsaka || objective == Story.ObjectiveID.FinalBoss)) { finalBossGO = GameObject.FindGameObjectWithTag("SnakebossHead"); }
                 if (finalBossGO != null)
@@ -330,34 +298,6 @@ namespace SpeedrunUtils
             }
         }
 
-        public void Update()
-        {
-            if(IsConnectedToLivesplit || debug)
-            {
-                UpdateAutosplitter();
-            }
-
-            if (File.Exists(SplitsPath) && SplitArray == null)
-            {
-                string[] lines = File.ReadAllLines(SplitsPath);
-                List<bool> tempList = new List<bool>();
-
-                foreach (var line in lines)
-                {
-                    if (!string.IsNullOrWhiteSpace(line) && line.Contains(','))
-                    {
-                        string[] parts = line.Split(',');
-                        if (parts.Length >= 2)
-                        {
-                            tempList.Add(bool.Parse(parts[1]));
-                        }
-                    }
-                }
-
-                SplitArray = tempList.ToArray();
-            }
-        }
-
         public void ReplaceBoolArrayInFile(string filePath, bool[] newBoolArray)
         {
             if (File.Exists(filePath))
@@ -384,7 +324,33 @@ namespace SpeedrunUtils
             }
         }
 
+        public void Update()
+        {
+            if(IsConnectedToLivesplit || debug)
+            {
+                UpdateAutosplitter();
+            }
 
+            if(File.Exists(SplitsPath) && SplitArray == null)
+            {
+                string[] lines = File.ReadAllLines(SplitsPath);
+                List<bool> tempList = new List<bool>();
+
+                foreach (var line in lines)
+                {
+                    if (!string.IsNullOrWhiteSpace(line) && line.Contains(','))
+                    {
+                        string[] parts = line.Split(',');
+                        if (parts.Length >= 2)
+                        {
+                            tempList.Add(bool.Parse(parts[1]));
+                        }
+                    }
+                }
+
+                SplitArray = tempList.ToArray();
+            }
+        }
 
         public void OnApplicationQuit()
         {

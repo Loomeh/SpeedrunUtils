@@ -2,6 +2,9 @@
 using System.Reflection;
 using UnityEngine;
 using System;
+using System.Threading.Tasks;
+using UnityEngine.UI;
+using UnityEngine.Playables;
 using TMPro;
 
 namespace SpeedrunUtils

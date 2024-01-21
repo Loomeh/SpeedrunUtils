@@ -8,14 +8,15 @@ namespace SpeedrunUtils
     {
         private GameObject _mod;
 
+
         private void Awake()
         {
             _mod = new();
-            _mod.AddComponent<Text>();
             _mod.AddComponent<LiveSplitControl>();
             _mod.AddComponent<DoAutoMash>();
-            _mod.AddComponent<NinjaConfigUI>();
-            DontDestroyOnLoad(_mod);
+            _mod.AddComponent<ConfigUi>();
+            _mod.AddComponent<Tools>();
+            GameObject.DontDestroyOnLoad(_mod);
         }
     }
 }
