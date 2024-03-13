@@ -1,8 +1,9 @@
 # SpeedrunUtils
 
 ## Features
-- Built in FPS limiter that can be used as a replacement for RivaTuner
+- Built in FPS limiter
 - A new autosplitter that's more accurate, more stable and easier to maintain
+- Leaderboard legal automash for unskippable dialogue
 
 ## How to use
 ` to open the GUI.
