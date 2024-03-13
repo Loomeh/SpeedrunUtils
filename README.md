@@ -16,32 +16,21 @@ Enter your framerate into the input field and click "Set FPS" to set your framer
 ## How to configure
 SpeedrunUtils by default is set up to automatically work with the current fastest Any% route so if you're doing that then you don't need to do any configuration at all. However, if you want some extra splits, want to change frame limiting keys or are deviating from the current route (Doing the Flesh Prince challenges) then you need to do some configuration.
 
-First, open the game so that it can download the files it needs. Then go to your game directory -> BepInEx -> config -> SpeedrunUtils.
+Splits can be configured with the in-game "Splits" menu.
 
-If you want to change your frame limiting keys then open Keys.txt.
-If you want to change your splits then open splits.txt.
+Keybinds can be configured by editing the Keys.txt file in the SpeedrunUtils config folder. All keys are parsed as KeyCode so use [this reference](https://docs.unity3d.com/ScriptReference/KeyCode.html) to properly input your keybinds.
+(Controller binds *are* supported. Read the linked reference page above.)
 
 
 ## How to install
-### Automatically
+#### Thunderstore
+SpeedrunUtils is available on [Thunderstore](https://thunderstore.io/c/bomb-rush-cyberfunk/p/Loomeh/SpeedrunUtils/) and can be installed via the Thunderstore mod client or r2modman.
+
+#### Manual
 You can install SpeedrunUtils with a batch script. You can download the batch file [here](https://raw.githubusercontent.com/Loomeh/SpeedrunUtilsInstaller/main/InstallSpeedrunUtils.bat) or just copy and paste this command into command prompt.
 ```
 curl https://raw.githubusercontent.com/Loomeh/SpeedrunUtilsInstaller/main/InstallSpeedrunUtils.bat -o %temp%\sruinstall.bat && %temp%\sruinstall.bat
 ```
-Then add the LiveSplit Server component to your LiveSplit layout by going to Edit Layout -> Add -> Control -> LiveSplit Server. Activate the server by right click LiveSplit -> Control -> Start Server.
+Then add the LiveSplit Server component to your LiveSplit layout by going to Edit Layout -> Add -> Control -> LiveSplit Server. 
 
-### Manually
-If you've installed SpeedUtils or NinjaUtils:
-- Download the [SpeedrunUtils DLL](https://github.com/Loomeh/SpeedrunUtils/releases/latest) and place it in your BepInEx Plugins folder
-- Download the [LiveSplit Server Component](https://github.com/LiveSplit/LiveSplit.Server/releases/tag/1.8.19)
-- Extract its contents into your LiveSplit Components folder
-- Then add the LiveSplit Server component to your LiveSplit layout by going to Edit Layout -> Add -> Control -> LiveSplit Server.
-- Activate the server by right click LiveSplit -> Control -> Start Server.
-
-
-If you haven't then follow these instructions:
-- Download [BepInEx 5.4.21](https://github.com/BepInEx/BepInEx/releases/tag/v5.4.21) and extract it to your BRCF install directory.
-- Open Bomb Rush Cyberfunk so BepInEx will run its setup, then close the game once you're at the main menu.
-- Download `SpeedrunUtils.dll` from [GitHub](https://github.com/Loomeh/SpeedrunUtils/releases/latest) and place it into `[BRCF Install Dir]\BepInEx\plugins`
-- Then add the LiveSplit Server component to your LiveSplit layout by going to Edit Layout -> Add -> Control -> LiveSplit Server.
-- Activate the server by right click LiveSplit -> Control -> Start Server.
+Activate the server by right click LiveSplit -> Control -> Start Server.
