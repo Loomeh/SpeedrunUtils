@@ -4,10 +4,14 @@
     <TargetFramework>net46</TargetFramework>
     <AssemblyName>SpeedrunUtils</AssemblyName>
     <Description>QOL improvements for BRC speedrunning.</Description>
-    <Version>1.5.1</Version>
+    <Version>1.5.2</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Platforms>AnyCPU;x64</Platforms>
+    <Authors>Loomeh</Authors>
+    <PackageId>brc.loomeh.speedrunutils</PackageId>
+    <Product>SpeedrunUtils</Product>
+    <Title>SpeedrunUtils</Title>
   </PropertyGroup>
 
   <ItemGroup>

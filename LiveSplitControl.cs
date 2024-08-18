@@ -1,12 +1,9 @@
 ﻿using BepInEx;
 using Reptile;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Drawing.Text;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;

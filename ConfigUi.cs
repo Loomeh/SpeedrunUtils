@@ -1,15 +1,10 @@
 using BepInEx;
 using Reptile;
 using System;
-using System.Collections.Generic;
-using System.Drawing.Text;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Text;
-using System.Threading;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.UIElements.Collections;
 
 namespace SpeedrunUtils
 {
@@ -19,7 +14,7 @@ namespace SpeedrunUtils
 
         public bool open = false;
 
-        private Rect winRect = new(20, 20, 275, 245);
+        private Rect winRect = new(20, 20, 300, 245);
         private Rect debugRect = new(20, 40, 275, 175);
 
         public string fpsCapStr = "";
@@ -31,6 +26,7 @@ namespace SpeedrunUtils
         public KeyCode autoMashKey = KeyCode.T;
 
         private GUIStyle currentStyle;
+        private TextManager textManager;
 
         public static string configFolder = Paths.ConfigPath + @"\SpeedrunUtils\";
         private string filePath = Path.Combine(configFolder, "FPS.txt");
@@ -66,168 +62,108 @@ namespace SpeedrunUtils
 
         public void configureKeys()
         {
-            string[] lines = File.ReadAllLines(keyConfigPath);
+            SettingsManager.CheckAndAddSetting(keyConfigPath, "Limit framerate", "O");
+            SettingsManager.CheckAndAddSetting(keyConfigPath, "Uncap framerate", "P");
+            SettingsManager.CheckAndAddSetting(keyConfigPath, "AutoMash Toggle", "T");
 
-            List<string> tempList = new List<string>();
-
-            foreach (var line in lines)
-            {
-                if (!string.IsNullOrWhiteSpace(line) && line.Contains(','))
-                {
-                    string[] parts = line.Split(',');
-                    if (parts.Length >= 2)
-                    {
-                        tempList.Add(parts[1]);
-                    }
-                }
-            }
-
-            if (System.Enum.TryParse(tempList[0], out KeyCode keycode_limit))
-            {
-                limitKey = (KeyCode)System.Enum.Parse(typeof(KeyCode), tempList[0], true);
-            }
-
-            if (System.Enum.TryParse(tempList[1], out KeyCode keycode_uncap))
-            {
-                uncapKey = (KeyCode)System.Enum.Parse(typeof(KeyCode), tempList[1], true);
-            }
-
-            if (System.Enum.TryParse(tempList[2], out KeyCode keycode_automash))
-            {
-                autoMashKey = (KeyCode)System.Enum.Parse(typeof(KeyCode), tempList[2], true);
-            }
+            limitKey = (KeyCode)Enum.Parse(typeof(KeyCode), SettingsManager.GetSetting(keyConfigPath, "Limit framerate", "O"), true);
+            uncapKey = (KeyCode)Enum.Parse(typeof(KeyCode), SettingsManager.GetSetting(keyConfigPath, "Uncap framerate", "P"), true);
+            autoMashKey = (KeyCode)Enum.Parse(typeof(KeyCode), SettingsManager.GetSetting(keyConfigPath, "AutoMash Toggle", "T"), true);
         }
 
         public void configFPSDisplay() 
         {
-            string[] lines = File.ReadAllLines(fpsDisplayPath);
+            SettingsManager.CheckAndAddSetting(fpsDisplayPath, "Display FPS", "true");
+            SettingsManager.CheckAndAddSetting(fpsDisplayPath, "FPS Size", "30");
+            SettingsManager.CheckAndAddSetting(fpsDisplayPath, "FPS X Pos", "10");
+            SettingsManager.CheckAndAddSetting(fpsDisplayPath, "FPS Y Pos", "5");
+            SettingsManager.CheckAndAddSetting(fpsDisplayPath, "AutoMash Starts Enabled", "true");
+            SettingsManager.CheckAndAddSetting(fpsDisplayPath, "Unlock FPS in loading screens", "false");
 
-            List<string> tempList = new List<string>();
-
-            foreach (var line in lines)
-            {
-                if (!string.IsNullOrWhiteSpace(line) && line.Contains(','))
-                {
-                    string[] parts = line.Split(',');
-                    if (parts.Length >= 2)
-                    {
-                        tempList.Add(parts[1]);
-                    }
-                }
-            }
-
-            if (bool.TryParse(tempList[0], out bool fpsbool))
-            {
-                shouldFPSDisplay = fpsbool;
-            }
-
-            if (Int32.TryParse(tempList[1], out Int32 size))
-            {
-                fpsSize = size;
-            }
-
-            if (Int32.TryParse(tempList[2], out Int32 xpos))
-            {
-                fpsXPos = xpos;
-            }
-
-            if (Int32.TryParse(tempList[3], out Int32 ypos))
-            {
-                fpsYPos = ypos;
-            }
-
-            if (bool.TryParse(tempList[4], out bool autoMashEnabled))
-            {
-                DoAutoMash.Instance.autoMash = autoMashEnabled;
-                autoMashState = autoMashEnabled;
-            }
-
-            if (bool.TryParse(tempList[5], out bool _uncapFPSinLoading))
-            {
-                uncappedFPSinLoading = _uncapFPSinLoading;
-            }
+            // Read settings
+            shouldFPSDisplay = bool.Parse(SettingsManager.GetSetting(fpsDisplayPath, "Display FPS", "true"));
+            fpsSize = int.Parse(SettingsManager.GetSetting(fpsDisplayPath, "FPS Size", "30"));
+            fpsXPos = int.Parse(SettingsManager.GetSetting(fpsDisplayPath, "FPS X Pos", "10"));
+            fpsYPos = int.Parse(SettingsManager.GetSetting(fpsDisplayPath, "FPS Y Pos", "5"));
+            DoAutoMash.Instance.autoMash = bool.Parse(SettingsManager.GetSetting(fpsDisplayPath, "AutoMash Starts Enabled", "true"));
+            autoMashState = DoAutoMash.Instance.autoMash;
+            uncappedFPSinLoading = bool.Parse(SettingsManager.GetSetting(fpsDisplayPath, "Unlock FPS in loading screens", "false"));
         }
 
         public void Start()
         {
             currentStyle = new GUIStyle();
 
-            if(!Directory.Exists(configFolder))
+            if (!Directory.Exists(configFolder))
             {
                 Directory.CreateDirectory(configFolder);
             }
+
+            SettingsManager.CheckAndAddSetting(filePath, "FPSCap", "300");
+            ReadFPSFile();
+
+            if (!File.Exists(SplitsPath))
+            {
+                string splitsText = "-- Any%\n";
+                File.WriteAllText(SplitsPath, splitsText);
+
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Prologue End", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Early Mataan (Splits when you enter Millenium Square)", "false");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Versum Hill Start", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Dream Sequence 1 Start", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Chapter 1 End", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Brink Terminal Start", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Dream Sequence 2 Start", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Chapter 2 End", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Millenium Mall Start", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Dream Sequence 3 Start", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Chapter 3 End", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Flesh Prince Versum End", "false");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Flesh Prince Millenium End", "false");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Flesh Prince Brink End", "false");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Pyramid Island Start", "false");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Dream Sequence 4 Start", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Chapter 4 End", "true");
+                SettingsManager.CheckAndAddSetting(SplitsPath, "Final Boss Defeated", "true");
+            }
+
+
+            // Write mouse menu fix on game launch as the harmony patch writes the setting too late which could cause confusion.
+            SettingsManager.CheckAndAddSetting(fpsDisplayPath, "Mouse Menu Fix", "true");
+
+            configureKeys();
+            configFPSDisplay();
+
+            lsCon = FindObjectOfType<LiveSplitControl>();
+            textManager = FindObjectOfType<TextManager>();
+
+            if (lsCon != null)
+            {
+                lsCon.ConnectToLiveSplit();
+            }
             else
             {
-                if (!File.Exists(filePath)) 
-                {
-                    using (FileStream fs = File.Create(filePath))
-                    {
-                        String fpsBytes = "300";
-                        byte[] buf = new UTF8Encoding(true).GetBytes(fpsBytes);
-                        fs.Write(buf, 0, fpsBytes.Length);
-                    }
-                }
+                Debug.LogError("LiveSplitControl component not found.");
+            }
 
-                ReadFPSFile();
-
-                if (!File.Exists(SplitsPath))
-                {
-                    string splitsText = "-- Any%\nPrologue End,true\nEarly Mataan (Splits when you enter Millenium Square),false\nVersum Hill Start,true\nDream Sequence 1 Start,true\nChapter 1 End,true\nBrink Terminal Start,true\nDream Sequence 2 Start,true\nChapter 2 End,true\nMillenium Mall Start,true\nDream Sequence 3 Start,true\nChapter 3 End,true\nFlesh Prince Versum End,false\nFlesh Prince Millenium End,false\nFlesh Prince Brink End,false\nPyramid Island Start,false\nDream Sequence 4 Start,true\nChapter 4 End,true\nFinal Boss Defeated,true";
-                    File.WriteAllText(SplitsPath, splitsText);
-                }
-
-                if (File.Exists(keyConfigPath))
-                {
-                    configureKeys();
-                }
-                else
-                {
-                    File.WriteAllText(keyConfigPath, "Limit framerate,O\nUncap framerate,P\nAutoMash Toggle,T");
-                    configureKeys();
-                }
-
-                if (File.Exists(fpsDisplayPath))
-                {
-                    configFPSDisplay();
-                }
-                else
-                {
-                    File.WriteAllText(fpsDisplayPath,
-                        "Display FPS,true\n" +
-                        "FPS Size,30\n" +
-                        "FPS X Pos,10\n" +
-                        "FPS Y Pos,5\n" +
-                        "AutoMash Starts Enabled,true\n" +
-                        "Unlock FPS in loading screens,false");
-
-                    configFPSDisplay();
-                }
-
-                lsCon = FindObjectOfType<LiveSplitControl>();
-
-                // This function seems to hang up the Start function so make sure it's always put last.
-                lsCon.ConnectToLiveSplit();
+            if (textManager == null)
+            {
+                Debug.LogError("TextManager component not found.");
             }
         }
 
-        private void ReadFPSFile() 
+        private void ReadFPSFile()
         {
-            if (File.Exists(filePath))
+            fpsCapStr = SettingsManager.GetSetting(filePath, "FPSCap", "300");
+            if (int.TryParse(fpsCapStr, out int i) && i >= 30)
             {
-                using (StreamReader sr = File.OpenText(filePath))
-                {
-                    fpsCapStr = sr.ReadToEnd();
-
-                    if (Int32.TryParse(fpsCapStr, out int i) && Int32.Parse(fpsCapStr) >= 30)
-                    {
-                        fpsCapInt = i;
-                    }
-                    else
-                    {
-                        fpsCapInt = 300;
-                        fpsCapStr = "300";
-                    }
-                }
+                fpsCapInt = i;
+            }
+            else
+            {
+                fpsCapInt = 300;
+                fpsCapStr = "300";
+                SettingsManager.CheckAndAddSetting(filePath, "FPSCap", "300");
             }
         }
 
@@ -257,13 +193,13 @@ namespace SpeedrunUtils
             if (splitsOpen && open)
             {
                 GUI.color = new Color(0, 0, 0, 1);
-                splitsWinRect = GUI.Window(1, splitsWinRect, SplitsWinProc, "Splits");
+                splitsWinRect = GUI.Window(1, splitsWinRect, SplitsWinProc, textManager.guiText.Get("Splits"));
             }
 
             if (creditsOpen && open)
             {
                 GUI.color = new Color(0, 0, 0, 1);
-                creditsWinRect = GUI.Window(2, creditsWinRect, CreditsWinProc, "Credits");
+                creditsWinRect = GUI.Window(2, creditsWinRect, CreditsWinProc, textManager.guiText.Get("Credits"));
             }
 
             if (shouldFPSDisplay)
@@ -279,7 +215,7 @@ namespace SpeedrunUtils
                 if (showAutoMashLength < showAutoMashLengthMax)
                 {
                     GUI.color = new Color(0, 0, 0, 0);
-                    CreateText(20, Screen.height - 40, 600, 600, new Color(0.2f, 1, 0.2f, 0.5f), "AutoMash Enabled");
+                    CreateText(20, Screen.height - 40, 600, 600, new Color(0.2f, 1, 0.2f, 0.5f), textManager.guiText.Get("AutoMash Enabled"));
 
                     autoMashState = true;
                     showAutoMashLength += Core.dt;
@@ -292,7 +228,7 @@ namespace SpeedrunUtils
                 if (showAutoMashLength < showAutoMashLengthMax)
                 {
                     GUI.color = new Color(0, 0, 0, 0);
-                    CreateText(20, Screen.height - 40, 600, 600, new Color(1, 0.2f, 0.2f, 0.5f), "AutoMash Disabled");
+                    CreateText(20, Screen.height - 40, 600, 600, new Color(1, 0.2f, 0.2f, 0.5f), textManager.guiText.Get("AutoMash Disabled"));
 
                     autoMashState = false;
                     showAutoMashLength += Core.dt;
@@ -316,13 +252,13 @@ namespace SpeedrunUtils
             GUI.Label(new(ox, oy, mx, 20), $"FPS: {fps}");
             oy += 10 + 5;
 
-            GUI.Label(new(ox, oy, mx, 20), $"FPS Limit ({limitKey}): {(limiting ? "<color=green>On</color>" : "<color=red>Off</color>")}");
+            GUI.Label(new(ox, oy, mx, 20), $"{textManager.guiText.Get("FPS Limit")} ({limitKey}): {(limiting ? $"<color=green>{textManager.guiText.Get("On")}</color>" : $"<color=red>{textManager.guiText.Get("Off")}</color>")}");
             oy += 10 + 5;
 
-            GUI.Label(new(ox, oy, mx, 20), $"Uncapped ({uncapKey}): {(uncapped ? "<color=green>On</color>" : "<color=red>Off</color>")}");
+            GUI.Label(new(ox, oy, mx, 20), $"{textManager.guiText.Get("Uncapped")} ({uncapKey}): {(uncapped ? $"<color=green>{textManager.guiText.Get("On")}</color>" : $"<color=red>{textManager.guiText.Get("Off")}</color>")}");
             oy += 10 + 10;
 
-            GUI.Label(new(ox, oy, mx, 20), $"{(lsCon.IsConnectedToLivesplit ? "<color=green>Connected to LiveSplit</color>" : "<color=red>Not connected to LiveSplit</color>")}");
+            GUI.Label(new(ox, oy, mx, 20), $"{(lsCon.IsConnectedToLivesplit ? $"<color=green>{textManager.guiText.Get("Connected to LiveSplit")}</color>" : $"<color=red>{textManager.guiText.Get("Not connected to LiveSplit")}</color>")}");
             oy += 10 + 10;
 
 
@@ -330,7 +266,7 @@ namespace SpeedrunUtils
             
             oy += 10 + 10;
 
-            if (GUI.Button(new Rect(ox, oy, mx, 20), "Set FPS"))
+            if (GUI.Button(new Rect(ox, oy, mx, 20), textManager.guiText.Get("Set FPS")))
             {
                 if (Int32.TryParse(fpsCapStr, out int i) && Int32.Parse(fpsCapStr) >= 30)
                 {
@@ -353,14 +289,14 @@ namespace SpeedrunUtils
 
             oy += 10 + 10;
 
-            if (GUI.Button(new Rect(ox, oy, mx, 20), "Connect to LiveSplit"))
+            if (GUI.Button(new Rect(ox, oy, mx, 20), textManager.guiText.Get("Connect to LiveSplit")))
             {
                 lsCon.ConnectToLiveSplit();
             }
 
             oy += 10 + 10;
 
-            if (GUI.Button(new Rect(ox, oy, mx, 20), "Splits"))
+            if (GUI.Button(new Rect(ox, oy, mx, 20), textManager.guiText.Get("Splits")))
             {
                 tempSplitsArray = lsCon.SplitArray;
                 splitsOpen = !splitsOpen;
@@ -368,13 +304,13 @@ namespace SpeedrunUtils
 
             oy += 10 + 15;
 
-            GUI.Label(new(ox, oy, mx, 20), "Report any issues in #technical-help");
+            GUI.Label(new(ox, oy, mx, 20), textManager.guiText.Get("Report any issues in #technical-help"));
             oy += 10 + 10;
 
-            GUI.Label(new(ox, oy, mx, 20), "Developed by <color=purple>Loomeh</color>");
+            GUI.Label(new(ox, oy, mx, 20), $"{textManager.guiText.Get("Developed by")} <color=purple>Loomeh</color>");
             oy += 10 + 15;
 
-            if (GUI.Button(new Rect(ox, oy, mx, 20), "Credits"))
+            if (GUI.Button(new Rect(ox, oy, mx, 20), textManager.guiText.Get("Credits")))
             {
                 creditsOpen = !creditsOpen;
             }
@@ -446,14 +382,14 @@ namespace SpeedrunUtils
 
             oy += 10 + 40;
 
-            if (GUI.Button(new Rect(ox, oy, mx, 20), "Save Splits"))
+            if (GUI.Button(new Rect(ox, oy, mx, 20), textManager.guiText.Get("Save Splits")))
             {
                 lsCon.ReplaceBoolArrayInFile(SplitsPath, tempSplitsArray);
             }
 
             oy += 10 + 10;
 
-            if (GUI.Button(new Rect(ox, oy, mx, 20), "Close"))
+            if (GUI.Button(new Rect(ox, oy, mx, 20), textManager.guiText.Get("Close")))
             {
                 splitsOpen = false;
             }
@@ -479,13 +415,16 @@ namespace SpeedrunUtils
             GUI.Label(new(ox, oy, mx, 20), "Erisrine - Italian translation");
             oy += 10 + 10;
 
-            GUI.Label(new(ox, oy, mx, 20), "Judah - JudahsSpeedUtils");
+            GUI.Label(new(ox, oy, mx, 20), "Judah Caruso - JudahsSpeedUtils");
             oy += 10 + 10;
 
             GUI.Label(new(ox, oy, mx, 20), "Storied - Beta testing");
             oy += 10 + 10;
 
             GUI.Label(new(ox, oy, mx, 20), "ItzBytez - Beta testing");
+            oy += 10 + 10;
+
+            GUI.Label(new(ox, oy, mx, 20), "ness - Bug reports");
             oy += 10 + 10;
 
             oy += 10 + 10;
@@ -540,7 +479,7 @@ namespace SpeedrunUtils
                     uncapped = false;
             }
 
-            if (Input.GetKeyDown(KeyCode.Quote))
+            if (Input.GetKeyDown(KeyCode.Insert))
                 open = !open;
 
             if (Input.GetKeyDown(limitKey))
