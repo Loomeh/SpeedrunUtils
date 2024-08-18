@@ -24,6 +24,7 @@ namespace SpeedrunUtils
         public KeyCode limitKey = KeyCode.O;
         public KeyCode uncapKey = KeyCode.P;
         public KeyCode autoMashKey = KeyCode.T;
+        public KeyCode openKey = KeyCode.Insert;
 
         private GUIStyle currentStyle;
         private TextManager textManager;
@@ -62,10 +63,12 @@ namespace SpeedrunUtils
 
         public void configureKeys()
         {
+            SettingsManager.CheckAndAddSetting(keyConfigPath, "Open Menu", "Insert");
             SettingsManager.CheckAndAddSetting(keyConfigPath, "Limit framerate", "O");
             SettingsManager.CheckAndAddSetting(keyConfigPath, "Uncap framerate", "P");
             SettingsManager.CheckAndAddSetting(keyConfigPath, "AutoMash Toggle", "T");
 
+            openKey = (KeyCode)Enum.Parse(typeof(KeyCode), SettingsManager.GetSetting(keyConfigPath, "Open Menu", "Insert"), true);
             limitKey = (KeyCode)Enum.Parse(typeof(KeyCode), SettingsManager.GetSetting(keyConfigPath, "Limit framerate", "O"), true);
             uncapKey = (KeyCode)Enum.Parse(typeof(KeyCode), SettingsManager.GetSetting(keyConfigPath, "Uncap framerate", "P"), true);
             autoMashKey = (KeyCode)Enum.Parse(typeof(KeyCode), SettingsManager.GetSetting(keyConfigPath, "AutoMash Toggle", "T"), true);
@@ -479,7 +482,7 @@ namespace SpeedrunUtils
                     uncapped = false;
             }
 
-            if (Input.GetKeyDown(KeyCode.Insert))
+            if (Input.GetKeyDown(openKey))
                 open = !open;
 
             if (Input.GetKeyDown(limitKey))

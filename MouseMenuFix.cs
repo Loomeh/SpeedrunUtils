@@ -2,6 +2,7 @@
 using Reptile;
 using UnityEngine;
 using BepInEx;
+using System;
 
 namespace SpeedrunUtils
 {
