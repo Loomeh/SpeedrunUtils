@@ -6,9 +6,9 @@
 - Leaderboard legal automash for unskippable dialogue
 
 ## How to use
-` to open the GUI.
+Insert to open the GUI (is configurable).
 
-By default, the O key will uncap your framerate and the P key will limit your framerate to 30FPS. If you want to change this. Read "How to configure".
+By default, the O key will uncap your framerate and the P key will limit your framerate to 30FPS. If you want to change this, read "How to configure".
 
 If LiveSplit is open, SpeedrunUtils will automatically connect to it. However, if you've opened LiveSplit after you opened your game, you can attempt to connect to it by opening the GUI and clicking "Connect to LiveSplit".
 
@@ -27,11 +27,15 @@ Keybinds can be configured by editing the Keys.txt file in the SpeedrunUtils con
 #### Thunderstore
 SpeedrunUtils is available on [Thunderstore](https://thunderstore.io/c/bomb-rush-cyberfunk/p/Loomeh/SpeedrunUtils/) and can be installed via the Thunderstore mod client or r2modman.
 
-#### Manual
-You can install SpeedrunUtils with a batch script. You can download the batch file [here](https://raw.githubusercontent.com/Loomeh/SpeedrunUtilsInstaller/main/InstallSpeedrunUtils.bat) or just copy and paste this command into command prompt.
-```
-curl https://raw.githubusercontent.com/Loomeh/SpeedrunUtilsInstaller/main/InstallSpeedrunUtils.bat -o %temp%\sruinstall.bat && %temp%\sruinstall.bat
-```
-Then add the LiveSplit Server component to your LiveSplit layout by going to Edit Layout -> Add -> Control -> LiveSplit Server. 
+##### Manual
+SpeedrunUtils can be manually installed by downloading `SpeedrunUtils.dll` from the Releases section and placing it inside your BepInEx plugins folder.
 
-Activate the server by right click LiveSplit -> Control -> Start Server.
+
+Make sure to start LiveSplit's TCP Server by right clicking on LiveSplit -> Control -> Start TCP Server. SpeedrunUtils will not work with LiveSplit if you don't do this.
+
+
+## Credits
+Judah Caruso - Making SpeedUtils, which SpeedrunUtils was based upon. \
+realJomoko - Research and code contributions. \
+NinjaCookie - Research and code contributions. \
+BRC Speedrunning Discord - Testing and bug reports
