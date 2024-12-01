@@ -38,4 +38,5 @@ Make sure to start LiveSplit's TCP Server by right clicking on LiveSplit -> Cont
 Judah Caruso - Making SpeedUtils, which SpeedrunUtils was based upon. \
 realJomoko - Research and code contributions. \
 NinjaCookie - Research and code contributions. \
+Erisrine - Italian translation \
 BRC Speedrunning Discord - Testing and bug reports
