@@ -7,7 +7,7 @@ namespace SpeedrunUtils
 {
     public class TextManager : MonoBehaviour
     {
-        public static string langPath = Paths.ConfigPath + @"\SpeedrunUtils\LANG.txt";
+        public static string langPath = Path.Combine(Paths.ConfigPath, "SpeedrunUtils", "LANG.txt");
         public string lang = "EN"; // Assume the user is an English speaker by default.
 
         public Dictionary<string, string> guiText = new Dictionary<string, string>(16);
@@ -56,6 +56,26 @@ namespace SpeedrunUtils
                     guiText.Add("Close", "Chiudi");
                     break;
 
+                case ("PT"):
+                    guiText.Add("Splits", "Splits");
+                    guiText.Add("Credits", "Créditos");
+                    guiText.Add("Automash Enabled", "Automash Ativado");
+                    guiText.Add("Automash Disabled", "Automash Desativado");
+                    guiText.Add("FPS", "FPS");
+                    guiText.Add("FPS Limit", "Limite de FPS");
+                    guiText.Add("On", "Ligado");
+                    guiText.Add("Off", "Desligado");
+                    guiText.Add("Uncapped", "Ilimitado");
+                    guiText.Add("Connected to LiveSplit", "Conectado ao LiveSplit");
+                    guiText.Add("Not connected to LiveSplit", "Não conectado ao LiveSplit");
+                    guiText.Add("Set FPS", "Definir FPS");
+                    guiText.Add("Connect to LiveSplit", "Conectar ao LiveSplit");
+                    guiText.Add("Report any issues in #technical-help", "Informe qualquer problema em #technical-help");
+                    guiText.Add("Developed by", "Desenvolvido por");
+                    guiText.Add("Save Splits", "Salvar Splits");
+                    guiText.Add("Close", "Fechar");
+                    break;
+
                 default:
                     guiText.Add("Splits", "Splits");
                     guiText.Add("Credits", "Credits");
@@ -79,7 +99,7 @@ namespace SpeedrunUtils
 
         private void Awake()
         {
-            // Check if the LANG.txt file exists. If it doesn't, determine the user's system language and write it into the file.
+            // Check if the LANG.txt file exists. If it doesn't, determine the user's system language, write it into the file and update lang variable.
             if(!File.Exists(langPath))
             {
                 switch(Application.systemLanguage)
@@ -92,6 +112,11 @@ namespace SpeedrunUtils
                     case SystemLanguage.Italian:
                         SettingsManager.CheckAndAddSetting(langPath, "LANG", "IT");
                         lang = "IT";
+                        break;
+
+                    case SystemLanguage.Portuguese:
+                        SettingsManager.CheckAndAddSetting(langPath, "LANG", "PT");
+                        lang = "PT";
                         break;
 
                     // Use English as default as the user's language is not supported yet.

@@ -56,7 +56,7 @@ namespace SpeedrunUtils
         private Rect splitsWinRect = new Rect(320, 20, 200, 450);
         private bool splitsOpen = false;
 
-        private Rect creditsWinRect = new Rect(320, 20, 450, 200);
+        private Rect creditsWinRect = new Rect(320, 20, 400, 220);
         private bool creditsOpen = false;
 
         private bool[] tempSplitsArray;
@@ -102,7 +102,7 @@ namespace SpeedrunUtils
                 Directory.CreateDirectory(configFolder);
             }
 
-            SettingsManager.CheckAndAddSetting(filePath, "FPSCap", "300");
+            SettingsManager.CheckAndAddSetting(filePath, "FPSCap", Screen.currentResolution.refreshRate.ToString());
             ReadFPSFile();
 
             if (!File.Exists(SplitsPath))
@@ -416,6 +416,9 @@ namespace SpeedrunUtils
             oy += 10 + 10;
 
             GUI.Label(new(ox, oy, mx, 20), "Erisrine - Italian translation");
+            oy += 10 + 10;
+
+            GUI.Label(new(ox, oy, mx, 20), "chermont - Portuguese translation");
             oy += 10 + 10;
 
             GUI.Label(new(ox, oy, mx, 20), "Judah Caruso - JudahsSpeedUtils");

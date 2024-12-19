@@ -20,7 +20,7 @@ namespace SpeedrunUtils
 
         public bool debug = false;
 
-        public BaseModule BaseModule;
+        private BaseModule BaseModule;
         public bool IsLoading;
         private bool prevIsLoading;
         public Story.ObjectiveID objective = Story.ObjectiveID.NONE;
@@ -61,6 +61,29 @@ namespace SpeedrunUtils
                 Directory.CreateDirectory(ConfigPath);
         }
 
+        public void Start()
+        {
+            if (File.Exists(SplitsPath) && SplitArray == null)
+            {
+                string[] lines = File.ReadAllLines(SplitsPath);
+                List<bool> tempList = new List<bool>();
+
+                foreach (var line in lines)
+                {
+                    if (!string.IsNullOrWhiteSpace(line) && line.Contains(','))
+                    {
+                        string[] parts = line.Split(',');
+                        if (parts.Length >= 2)
+                        {
+                            tempList.Add(bool.Parse(parts[1]));
+                        }
+                    }
+                }
+
+                SplitArray = tempList.ToArray();
+            }
+        }
+
 
 
         public void ConnectToLiveSplit()
@@ -98,6 +121,7 @@ namespace SpeedrunUtils
                 IsConnectedToLivesplit = false;
             }
         }
+
 
         private void UpdateFields()
         {
@@ -321,31 +345,12 @@ namespace SpeedrunUtils
             }
         }
 
+
         public void Update()
         {
             if(IsConnectedToLivesplit || debug)
             {
                 UpdateAutosplitter();
-            }
-
-            if(File.Exists(SplitsPath) && SplitArray == null)
-            {
-                string[] lines = File.ReadAllLines(SplitsPath);
-                List<bool> tempList = new List<bool>();
-
-                foreach (var line in lines)
-                {
-                    if (!string.IsNullOrWhiteSpace(line) && line.Contains(','))
-                    {
-                        string[] parts = line.Split(',');
-                        if (parts.Length >= 2)
-                        {
-                            tempList.Add(bool.Parse(parts[1]));
-                        }
-                    }
-                }
-
-                SplitArray = tempList.ToArray();
             }
         }
 
