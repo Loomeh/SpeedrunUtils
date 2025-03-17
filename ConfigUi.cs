@@ -203,7 +203,7 @@ namespace SpeedrunUtils
             if (open)
             {
                 GUI.color = new Color(0, 0, 0, 1);
-                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} {PluginInfo.PLUGIN_VERSION}");
+                winRect = GUI.Window(0, winRect, WinProc, $"{PluginInfo.PLUGIN_NAME} {PluginInfo.PLUGIN_VERSION} prerelease");
             }
 
             if (splitsOpen && open)
