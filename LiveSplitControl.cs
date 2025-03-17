@@ -3,6 +3,7 @@ using Reptile;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -11,6 +12,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
+using Debug = UnityEngine.Debug;
 
 namespace SpeedrunUtils
 {
@@ -61,7 +63,6 @@ namespace SpeedrunUtils
 
         private string cutsceneNameCache;
 
-        private const int TIMEOUT_MS = 100;
         private const int BUFFER_SIZE = 1024;
 
         private Dictionary<string, CutsceneData> cutscenes = new Dictionary<string, CutsceneData>();
@@ -461,7 +462,7 @@ namespace SpeedrunUtils
             if (IsLoading || prevIsLoading)
             {
                 Debug.Log("Game is loading or just finished loading, delaying cutscene skip attempt");
-                yield return new WaitForSecondsRealtime(0.5f); // Add delay after loading
+                yield return new WaitUntil(() => (!prevIsLoading && !IsLoading));
 
                 // Check again if we're still in the cutscene
                 if (sequenceName != cutsceneName)
@@ -491,16 +492,23 @@ namespace SpeedrunUtils
 
             cutsceneSkipInProgress = true;
 
+            Stopwatch responseTimer = new Stopwatch();
+            responseTimer.Start();
             byte[] commandBytes = Encoding.UTF8.GetBytes("getcurrentgametime\r\n");
             Stream.Write(commandBytes, 0, commandBytes.Length);
             Stream.Flush();
 
             var responseBuffer = new byte[BUFFER_SIZE];
             var waitTask = Stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
-            yield return new WaitForSecondsRealtime(TIMEOUT_MS / 1000f);
+            
+            yield return new WaitUntil(() => waitTask.IsCompleted);
 
             if (waitTask.IsCompleted)
             {
+                responseTimer.Stop();
+
+                Debug.Log("LiveSplit Response Time: " + responseTimer.ElapsedMilliseconds);
+
                 int bytesRead = waitTask.Result;
                 string response = Encoding.ASCII.GetString(responseBuffer, 0, bytesRead).Trim();
                 Debug.Log($"Attempting to parse time: '{response}'");
@@ -509,7 +517,7 @@ namespace SpeedrunUtils
                 {
                     if (TimeSpan.TryParseExact(cutsceneData.Duration, @"m\:ss\.fff", null, out TimeSpan skipTime))
                     {
-                        TimeSpan timeoutDelay = TimeSpan.FromMilliseconds(TIMEOUT_MS * 2);
+                        TimeSpan timeoutDelay = TimeSpan.FromMilliseconds(responseTimer.ElapsedMilliseconds);
                         var newTime = (currentGameTime + skipTime) - timeoutDelay;
 
                         string newTimeString = newTime.ToString(@"hh\:mm\:ss\.fff");
@@ -520,7 +528,7 @@ namespace SpeedrunUtils
                         Stream.Flush();
                         Debug.Log("New time sent to server.");
 
-                        yield return new WaitForSecondsRealtime(TIMEOUT_MS / 1000f);
+
                         yield return StartCoroutine(cutsceneSkip(cutsceneName));
                     }
                     else
