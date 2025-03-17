@@ -1,6 +1,7 @@
 ﻿using BepInEx;
 using Reptile;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,6 +18,7 @@ namespace SpeedrunUtils
     {
         private static readonly string ConfigPath = Paths.ConfigPath + "\\" + "SpeedrunUtils\\";
         private readonly string SplitsPath = Path.Combine(ConfigPath, "splits.txt");
+        private readonly string SettingsPath = Path.Combine(ConfigPath, "Settings.txt");
 
         public bool debug = false;
 
@@ -51,12 +53,68 @@ namespace SpeedrunUtils
         private int Port = 16834;
 
         private bool HasSentPauseCommand = false;
+        private float cutsceneCacheTimeout = 0.5f;
+        private bool cutsceneSkipInProgress = false;
 
         private TcpClient Client = null;
         private NetworkStream Stream = null;
 
+        private string cutsceneNameCache;
+
+        private const int TIMEOUT_MS = 100;
+        private const int BUFFER_SIZE = 1024;
+
+        private Dictionary<string, CutsceneData> cutscenes = new Dictionary<string, CutsceneData>();
+        private Dictionary<string, float> cutsceneTimeCache = new Dictionary<string, float>();
+
+        private static MethodInfo cachedExitSequenceMethod;
+        private static object sequenceHandlerInstance;
+
+        // Struct to store cutscene data
+        private struct CutsceneData
+        {
+            public string Name;
+            public string Duration;
+            public bool Skipped;
+
+            public CutsceneData(string name, string duration)
+            {
+                Name = name;
+                Duration = duration;
+                Skipped = false;
+            }
+        }
+
+        // Initialize cutscenes
+        private void InitializeCutscenes()
+        {
+            cutscenes.Clear();
+
+            cutscenes.Add("ch1s5b", new CutsceneData("ch1s5b", "1:35.751"));
+            cutscenes.Add("ch1s10", new CutsceneData("ch1s10", "1:27.370"));
+            //cutscenes.Add("ch1s12", new CutsceneData("ch1s12", "0:38.210"));
+            cutscenes.Add("ch2s1", new CutsceneData("ch2s1", "1:42.287"));
+            cutscenes.Add("ch3s1", new CutsceneData("ch3s1", "0:57.427"));
+        }
+
+        public void ResetCutscenes()
+        {
+            foreach (var key in cutscenes.Keys.ToList())
+            {
+                var cutscene = cutscenes[key];
+                cutscene.Skipped = false;
+                cutscenes[key] = cutscene;
+            }
+            cutsceneTimeCache.Clear();
+            Debug.Log("All cutscenes and cache reset for new game.");
+        }
+
+
         public void Awake()
         {
+            InitializeCutscenes();
+
+
             if(!Directory.Exists(ConfigPath))
                 Directory.CreateDirectory(ConfigPath);
         }
@@ -165,6 +223,7 @@ namespace SpeedrunUtils
                 if (sequenceHandler != null && inCutscene && sequenceName == "") { sequence = (PlayableDirector)typeof(SequenceHandler).GetField("sequence", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sequenceHandler); sequenceName = sequence.name; }
                 else if (!inCutscene) { sequenceName = ""; }
 
+
                 if (finalBossHit && currentStage != Stage.osaka) { finalBossHit = false; }
 
                 if (finalBossGO == null && currentStage == Stage.osaka && (objective == Story.ObjectiveID.BeatOsaka || objective == Story.ObjectiveID.FinalBoss)) { finalBossGO = GameObject.FindGameObjectWithTag("SnakebossHead"); }
@@ -182,11 +241,68 @@ namespace SpeedrunUtils
             }
         }
 
+        private void CacheExitSequenceMethod()
+        {
+            if (cachedExitSequenceMethod == null && sequenceHandler != null)
+            {
+                // Cache the method and instance
+                cachedExitSequenceMethod = typeof(SequenceHandler).GetMethod("SetExitSequence", BindingFlags.Instance | BindingFlags.NonPublic);
+                sequenceHandlerInstance = sequenceHandler;
+
+                if (cachedExitSequenceMethod == null)
+                {
+                    Debug.LogError("Failed to cache 'SetExitSequence'. Method not found.");
+                }
+            }
+        }
+
+        public void ExitSequence()
+        {
+            if (sequenceHandler == null)
+            {
+                Debug.LogError("SequenceHandler is null. Cannot exit sequence.");
+                return;
+            }
+
+            // Initialize the cached method if not already done
+            CacheExitSequenceMethod();
+
+            if (cachedExitSequenceMethod == null)
+            {
+                Debug.LogError("Cached 'SetExitSequence' method is null. Exiting.");
+                return;
+            }
+
+            // Check if we're still loading or if the player is null
+            if (IsLoading || player == null)
+            {
+                Debug.LogWarning("Game is loading or player not ready. Skipping sequence exit for safety.");
+                return;
+            }
+
+            try
+            {
+                // Call the cached method on the cached instance
+                cachedExitSequenceMethod.Invoke(sequenceHandlerInstance, null);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error invoking 'SetExitSequence': {ex.Message}");
+            }
+        }
+
+
+
         public void UpdateAutosplitter()
         {
             if (IsConnectedToLivesplit || debug)
             {
                 UpdateFields();
+
+                if(currentStage == Stage.NONE && prevStage != Stage.NONE)
+                {
+                    ResetCutscenes();
+                }
 
                 if (currentStage == Stage.Prelude && newGame && !IsLoading)
                 {
@@ -254,6 +370,18 @@ namespace SpeedrunUtils
                     }
                 }
 
+                // Manage cutscene skipping
+                if (inCutscene && !cutsceneSkipInProgress && bool.Parse(SettingsManager.GetSetting(SettingsPath, "Enable cutscene skipping", "true")))
+                {
+                    cutsceneNameCache = sequenceName;
+
+                    if (cutscenes.ContainsKey(cutsceneNameCache))
+                    {
+                        StartCoroutine(SkipCutscene(cutsceneNameCache));
+                    }
+                }
+
+
                 if (
                     (currentStage == Stage.hideout && prevStage == Stage.Prelude && SplitArray[0])
                     ||
@@ -318,6 +446,132 @@ namespace SpeedrunUtils
                 }
             }
         }
+
+        public IEnumerator SkipCutscene(string cutsceneName)
+        {
+            if (!cutscenes.ContainsKey(cutsceneName))
+            {
+                Debug.LogError($"Cutscene '{cutsceneName}' not found!");
+                yield break;
+            }
+
+            if (!IsConnectedToLivesplit || cutsceneSkipInProgress) yield break;
+
+            // Add safety check for loading state
+            if (IsLoading || prevIsLoading)
+            {
+                Debug.Log("Game is loading or just finished loading, delaying cutscene skip attempt");
+                yield return new WaitForSecondsRealtime(0.5f); // Add delay after loading
+
+                // Check again if we're still in the cutscene
+                if (sequenceName != cutsceneName)
+                {
+                    Debug.Log("No longer in target cutscene after loading delay");
+                    yield break;
+                }
+            }
+
+            var cutsceneData = cutscenes[cutsceneName];
+
+            // Check if the cutscene has already been skipped
+            if (cutsceneData.Skipped)
+            {
+                // Allow skipping again if the game is still in this cutscene
+                if (sequenceName == cutsceneName)
+                {
+                    Debug.Log($"Cutscene '{cutsceneName}' is still active despite being marked as skipped. Continuing exit sequence.");
+                    yield return StartCoroutine(cutsceneSkip(cutsceneName));
+                }
+                else
+                {
+                    Debug.Log($"Cutscene '{cutsceneName}' already skipped and is no longer active.");
+                }
+                yield break;
+            }
+
+            cutsceneSkipInProgress = true;
+
+            byte[] commandBytes = Encoding.UTF8.GetBytes("getcurrentgametime\r\n");
+            Stream.Write(commandBytes, 0, commandBytes.Length);
+            Stream.Flush();
+
+            var responseBuffer = new byte[BUFFER_SIZE];
+            var waitTask = Stream.ReadAsync(responseBuffer, 0, responseBuffer.Length);
+            yield return new WaitForSecondsRealtime(TIMEOUT_MS / 1000f);
+
+            if (waitTask.IsCompleted)
+            {
+                int bytesRead = waitTask.Result;
+                string response = Encoding.ASCII.GetString(responseBuffer, 0, bytesRead).Trim();
+                Debug.Log($"Attempting to parse time: '{response}'");
+
+                if (TimeSpan.TryParse(response, out TimeSpan currentGameTime))
+                {
+                    if (TimeSpan.TryParseExact(cutsceneData.Duration, @"m\:ss\.fff", null, out TimeSpan skipTime))
+                    {
+                        TimeSpan timeoutDelay = TimeSpan.FromMilliseconds(TIMEOUT_MS * 2);
+                        var newTime = (currentGameTime + skipTime) - timeoutDelay;
+
+                        string newTimeString = newTime.ToString(@"hh\:mm\:ss\.fff");
+                        Debug.Log($"New time to set: {newTimeString}");
+
+                        commandBytes = Encoding.UTF8.GetBytes($"setgametime {newTimeString}\r\n");
+                        Stream.Write(commandBytes, 0, commandBytes.Length);
+                        Stream.Flush();
+                        Debug.Log("New time sent to server.");
+
+                        yield return new WaitForSecondsRealtime(TIMEOUT_MS / 1000f);
+                        yield return StartCoroutine(cutsceneSkip(cutsceneName));
+                    }
+                    else
+                    {
+                        Debug.LogError($"Invalid format for cutscene duration: {cutsceneData.Duration}");
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"Invalid format for received time: {response}");
+                }
+            }
+            else
+            {
+                Debug.LogError("Timeout occurred while waiting for game time response.");
+            }
+
+            cutsceneSkipInProgress = false;
+
+
+            IEnumerator cutsceneSkip(string cutsceneName)
+            {
+                int maxAttempts = 3;
+                int attempts = 0;
+
+                while (sequenceName == cutsceneName && attempts < maxAttempts)
+                {
+                    if (IsLoading || player == null)
+                    {
+                        Debug.Log("Game is loading or player not ready. Waiting before attempting to skip...");
+                        yield return new WaitForSecondsRealtime(0.2f);
+                        continue;
+                    }
+
+                    ExitSequence();
+                    attempts++;
+                    yield return new WaitForSecondsRealtime(0.1f);
+                }
+
+                // Mark the cutscene as skipped
+                var updatedCutsceneData = cutscenes[cutsceneName];
+                updatedCutsceneData.Skipped = true;
+                cutscenes[cutsceneName] = updatedCutsceneData;
+
+                // Update the cache with the current time
+                cutsceneTimeCache[cutsceneName] = Time.time;
+
+                Debug.Log($"Cutscene '{cutsceneName}' marked as skipped and cached after {attempts} attempts.");
+            }
+        }
+
 
         public void ReplaceBoolArrayInFile(string filePath, bool[] newBoolArray)
         {

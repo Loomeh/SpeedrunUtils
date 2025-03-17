@@ -17,6 +17,7 @@ namespace SpeedrunUtils
             _mod.AddComponent<LiveSplitControl>();
             _mod.AddComponent<DoAutoMash>();
             _mod.AddComponent<ConfigUi>();
+            //_mod.AddComponent<SRUStopwatch>();
             _mod.AddComponent<MainMenuVerManager>();
             _mod.AddComponent<Tools>();
             GameObject.DontDestroyOnLoad(_mod);

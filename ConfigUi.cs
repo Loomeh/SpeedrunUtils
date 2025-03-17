@@ -1,9 +1,13 @@
-using BepInEx;
+﻿using BepInEx;
 using Reptile;
 using System;
+using System.Collections;
+using System.Drawing.Text;
 using System.IO;
+using System.Net;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UIElements.Collections;
 
 namespace SpeedrunUtils
@@ -61,6 +65,11 @@ namespace SpeedrunUtils
 
         private bool[] tempSplitsArray;
 
+        private string debugCutsceneTimer;
+        private SRUStopwatch _stopwatch;
+        private string cutsceneNameCache;
+        private WebClient cutsceneDataClient;
+
         public void configureKeys()
         {
             SettingsManager.CheckAndAddSetting(keyConfigPath, "Open Menu", "Insert");
@@ -82,6 +91,7 @@ namespace SpeedrunUtils
             SettingsManager.CheckAndAddSetting(fpsDisplayPath, "FPS Y Pos", "5");
             SettingsManager.CheckAndAddSetting(fpsDisplayPath, "AutoMash Starts Enabled", "true");
             SettingsManager.CheckAndAddSetting(fpsDisplayPath, "Unlock FPS in loading screens", "false");
+            SettingsManager.CheckAndAddSetting(fpsDisplayPath, "Enable cutscene skipping", "true");
 
             // Read settings
             shouldFPSDisplay = bool.Parse(SettingsManager.GetSetting(fpsDisplayPath, "Display FPS", "true"));
@@ -96,6 +106,7 @@ namespace SpeedrunUtils
         public void Start()
         {
             currentStyle = new GUIStyle();
+            cutsceneDataClient = new WebClient();
 
             if (!Directory.Exists(configFolder))
             {
@@ -104,6 +115,7 @@ namespace SpeedrunUtils
 
             SettingsManager.CheckAndAddSetting(filePath, "FPSCap", Screen.currentResolution.refreshRate.ToString());
             ReadFPSFile();
+
 
             if (!File.Exists(SplitsPath))
             {
@@ -138,6 +150,7 @@ namespace SpeedrunUtils
             configFPSDisplay();
 
             lsCon = FindObjectOfType<LiveSplitControl>();
+            _stopwatch = FindObjectOfType<SRUStopwatch>();
             textManager = FindObjectOfType<TextManager>();
 
             if (lsCon != null)
@@ -466,13 +479,55 @@ namespace SpeedrunUtils
             GUI.Label(new(dOX, dOY, dMX, 20), $"Cutscene ID: {lsCon.sequenceName}");
             dOY += 10 + 5;
 
+            GUI.Label(new(dOX, dOY, dMX, 20), $"Cutscene Timer: {_stopwatch.GetStopwatchTimeString()}");
+            dOY += 10 + 5;
+
             GUI.Label(new(dOX, dOY, dMX, 20), $"Loading: {lsCon.IsLoading}");
             dOY += 10 + 5;
 
             GUI.DragWindow();
         }
 
-        
+        private IEnumerator SendGameData(string webhook, string message)
+        {
+            // More comprehensive escaping for JSON
+            string escapedMessage = message
+                .Replace("\\", "\\\\")  // Escape backslashes
+                .Replace("\n", "\\n")   // Escape newlines
+                .Replace("\"", "\\\""); // Escape double quotes
+
+            // Create the JSON payload
+            string payload = $"{{\"content\": \"{escapedMessage}\"}}";
+
+            Debug.Log("Preparing to send webhook message...");
+            Debug.Log($"Payload: {payload}");
+
+            using (UnityWebRequest request = new UnityWebRequest(webhook, "POST"))
+            {
+                byte[] bodyRaw = Encoding.UTF8.GetBytes(payload);
+                request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                request.downloadHandler = new DownloadHandlerBuffer();
+                request.SetRequestHeader("Content-Type", "application/json");
+
+                // Send the request and wait for a response
+                yield return request.SendWebRequest();
+
+                // Check the response
+                if (request.result == UnityWebRequest.Result.Success)
+                {
+                    Debug.Log("Message sent successfully.");
+                }
+                else
+                {
+                    Debug.LogError($"Error sending message. Response code: {request.responseCode}, Error: {request.error}, Response: {request.downloadHandler.text}");
+                }
+            }
+        }
+
+
+
+
+
         public void Update()
         {
             handleFPSCounter();
@@ -514,6 +569,34 @@ namespace SpeedrunUtils
             if (QualitySettings.vSyncCount > 0)
             {
                 QualitySettings.vSyncCount = 0;
+            }
+
+            if(lsCon.debug)
+            {
+                if(Input.GetKeyDown(KeyCode.PageDown))
+                {
+                    //lsCon.ExitSequence();
+                }
+
+                if (lsCon.inCutscene)
+                {
+                    cutsceneNameCache = lsCon.sequenceName;
+
+                    if (_stopwatch.GetStopwatchState() == false)
+                    {
+                        // Clear from last cutscene
+                        _stopwatch.ResetStopwatch();
+
+                        _stopwatch.StartStopwatch();
+                    }
+                }
+                else if (!lsCon.inCutscene && _stopwatch.GetStopwatchState() || (lsCon.IsLoading || lsCon.IsLoadingNoExtend) && _stopwatch.GetStopwatchState())
+                {
+                    _stopwatch.StopStopwatch();
+                    cutsceneNameCache = "";
+                }
+
+
             }
 
             if (limiting)

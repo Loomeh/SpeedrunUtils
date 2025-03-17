@@ -1,4 +1,4 @@
-using Reptile;
+﻿using Reptile;
 using UnityEngine;
 
 namespace SpeedrunUtils
